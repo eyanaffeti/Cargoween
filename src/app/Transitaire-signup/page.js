@@ -20,6 +20,7 @@ export default function SignUpPage() {
     phone: "",
     cassNumber: "",
     password: "",
+    confirmPassword: "", // ✅ Ajout de la confirmation du mot de passe
   });
 
   const [message, setMessage] = useState("");
@@ -28,9 +29,25 @@ export default function SignUpPage() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  const validateCompanyID = (id) => {
+    const regex = /^[a-zA-Z0-9]{14}$/; // ✅ 14 caractères alphanumériques
+    return regex.test(id);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setMessage(""); // Réinitialiser le message
+    setMessage("");
+
+    // ✅ Vérification des champs
+    if (formData.password !== formData.confirmPassword) {
+      setMessage("❌ Les mots de passe ne correspondent pas !");
+      return;
+    }
+
+    if (!validateCompanyID(formData.companyID)) {
+      setMessage("❌ L'ID de la compagnie doit contenir 14 caractères alphanumériques !");
+      return;
+    }
 
     try {
       const response = await fetch("/api/auth/signup", {
@@ -42,15 +59,15 @@ export default function SignUpPage() {
       const data = await response.json();
 
       if (response.ok) {
-        setMessage("Inscription réussie ! Redirection...");
+        setMessage("✅ Inscription réussie ! Redirection...");
         setTimeout(() => {
-          window.location.href = "/login"; // Rediriger après succès
+          window.location.href = "/login";
         }, 2000);
       } else {
-        setMessage(data.message || "Erreur lors de l'inscription");
+        setMessage(data.message || "❌ Erreur lors de l'inscription");
       }
     } catch (error) {
-      setMessage("Erreur serveur");
+      setMessage("❌ Erreur serveur");
     }
   };
 
@@ -69,7 +86,7 @@ export default function SignUpPage() {
         <div className="bg-[#121B2D] text-white rounded-2xl p-10 shadow-lg w-[716px] mt-12">
           <h2 className="text-center text-3xl font-semibold mb-6">Transitaires</h2>
 
-          {message && <p className="text-center text-red-500">{message}</p>}
+          {message && <p className={`text-center ${message.includes("✅") ? "text-green-500" : "text-red-500"}`}>{message}</p>}
 
           <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-4">
             {/* Champs de formulaire avec icônes */}
@@ -112,33 +129,52 @@ export default function SignUpPage() {
               />
             </div>
 
-            {/* Champ Mot de Passe */}
-            <div className="col-span-2 flex justify-center">
-              <div className="relative w-2/3">
-                <span className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400">
-                  <FaLock />
-                </span>
-                <input
-                  type="password"
-                  name="password"
-                  placeholder="Mot de passe"
-                  onChange={handleChange}
-                  className="pl-10 pr-4 py-3 rounded-full bg-gray-200 text-black w-full outline-none focus:ring-2 focus:ring-[#0089B6]"
-                  required
-                />
-              </div>
+            {/* ✅ Champ Mot de Passe */}
+            <div className="relative w-full">
+              <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+                <FaLock />
+              </span>
+              <input
+                type="password"
+                name="password"
+                placeholder="Mot de passe"
+                onChange={handleChange}
+                className="pl-10 pr-4 py-3 rounded-full bg-gray-200 text-black w-full outline-none focus:ring-2 focus:ring-[#0089B6]"
+                required
+              />
             </div>
 
-            {/* Bouton d'inscription */}
-            <div className="col-span-2 flex justify-center">
+            {/* ✅ Champ Confirmation Mot de Passe */}
+            <div className="relative w-full">
+              <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+                <FaLock />
+              </span>
+              <input
+                type="password"
+                name="confirmPassword"
+                placeholder="Confirmer le mot de passe"
+                onChange={handleChange}
+                className="pl-10 pr-4 py-3 rounded-full bg-gray-200 text-black w-full outline-none focus:ring-2 focus:ring-[#0089B6]"
+                required
+              />
+            </div>
+{/* Bouton d'inscription */}
+<div className="col-span-2 flex justify-center">
               <button
                 type="submit"
-                className="bg-[#0089B6] hover:bg-[#0075A0] text-white font-medium py-2 px-6 rounded-full transition-all text-sm"
-              >
+                className="px-8 py-3 text-white border-4 border-[#0089B6] rounded-full text-lg font-medium hover:bg-[#0089B6] transition-all duration-300"
+                >
                 Je m'inscris
               </button>
-            </div>
-          </form>
+              </div>
+            </form>
+  
+            <p className="text-center mt-4">
+              Vous avez déjà un compte ?{" "}
+              <a href="/login" className="text-[#0089B6] underline">
+                Se connecter
+              </a>
+            </p>
         </div>
       </section>
 

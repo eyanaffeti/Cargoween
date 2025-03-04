@@ -34,7 +34,7 @@ export default function HeroSection() {
       réserver instantanément vos opérations de transport aérien.
     </p>
     <motion.button
-              onClick={() => (window.location.href = "/signin")} // Redirection avec rechargement
+              onClick={() => (window.location.href = "/identifier")} // Redirection avec rechargement
                className="px-8 py-3 text-white border-4 border-[#0089B6] rounded-full text-lg font-medium hover:bg-[#0089B6] transition-all duration-300"
       whileHover={{ scale: 1.1 }}
       whileTap={{ scale: 0.9 }}

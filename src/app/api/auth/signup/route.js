@@ -30,6 +30,7 @@ export async function POST(req) {
         phone,
         cassNumber,
         role: "transitaire",
+        
       });
   
       await newTransitaire.save();

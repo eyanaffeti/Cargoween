@@ -5,7 +5,6 @@ import TransitairesSection from '../components/TransitairesSection';
 import Navbar from '../components/Navbar';
 import CompagniesAériennes from '@/components/CompagniesAériennes';
 import Temoignages from '@/components/Temoignages';
-import LoginPage from './login/page';
 
 export default function Home() {
   return (
