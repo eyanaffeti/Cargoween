@@ -2,7 +2,8 @@ import { connectToDatabase } from "@/lib/mongodb";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import Transitaire from "@/models/Transitaire";
-import Airline from "@/models/Airline"; // Import du modèle Airlines
+import Airline from "@/models/Airline";
+import Admin from "@/models/Admin";
 import nodemailer from "nodemailer";
 
 export async function POST(req) {
@@ -10,58 +11,67 @@ export async function POST(req) {
     const { email, password } = await req.json();
     await connectToDatabase();
 
-    // ✅ Vérifier si l'utilisateur existe dans `Transitaire`
-    let user = await Transitaire.findOne({ email });
+    // Vérifier dans Admin
+    let user = await Admin.findOne({ email });
 
-    // ✅ Si l'utilisateur n'est pas trouvé dans `Transitaire`, chercher dans `Airlines`
+    // Vérifier dans Transitaire si pas Admin
+    if (!user) {
+      user = await Transitaire.findOne({ email });
+    }
+
+    // Vérifier dans Airline si pas Admin ni Transitaire
     if (!user) {
       user = await Airline.findOne({ email });
     }
 
-    // ✅ Si aucun utilisateur n'est trouvé
     if (!user) {
       return new Response(JSON.stringify({ message: "Utilisateur non trouvé" }), { status: 404 });
     }
 
-    // ✅ Vérifier le mot de passe
+    // Vérifier mot de passe
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return new Response(JSON.stringify({ message: "Mot de passe incorrect" }), { status: 401 });
     }
 
-    // ✅ Vérifier si l'utilisateur est déjà vérifié
+    // Générer le token JWT
+    const tokenPayload = { id: user._id, email: user.email, role: user.role };
+
+    if (user instanceof Admin) {
+      const token = jwt.sign(tokenPayload, process.env.JWT_SECRET, { expiresIn: "1h" });
+
+      return new Response(
+        JSON.stringify({ message: "Connexion réussie", token, role: "admin" }),
+        { status: 200 }
+      );
+    }
+
+    // Si Transitaire ou Airline vérifié
     if (user.isVerified) {
-      console.log("🔓 Utilisateur déjà vérifié, connexion directe !");
-      
-      // ✅ Générer un token avec `isVerified`
       const token = jwt.sign(
-        { id: user._id, email: user.email, role: user.role, isVerified: true },
+        { ...tokenPayload, isVerified: true },
         process.env.JWT_SECRET,
         { expiresIn: "1h" }
       );
 
       return new Response(
-        JSON.stringify({ message: "Connexion réussie", token, isVerified: true }),
+        JSON.stringify({ message: "Connexion réussie", token, role: user.role, isVerified: true }),
         { status: 200 }
       );
     }
 
-    // ✅ Générer un code de vérification à 6 chiffres
+    // Si pas vérifié, générer code
     const verificationCode = Math.floor(100000 + Math.random() * 900000);
     console.log(`📩 Code généré pour ${email} :`, verificationCode);
 
-    // ✅ Déterminer la collection à mettre à jour (Transitaire ou Airlines)
     const model = user instanceof Transitaire ? Transitaire : Airline;
 
-    // ✅ Stocker le code temporairement dans la base de données
     await model.findByIdAndUpdate(user._id, {
-      verificationCode: verificationCode,
+      verificationCode,
       verificationCodeExpires: new Date(Date.now() + 10 * 60 * 1000),
     });
 
-    console.log(`✅ Code enregistré en base pour ${email}`);
-
-    // ✅ Envoyer l'email avec le code de vérification
+    // Envoyer le mail
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
@@ -74,7 +84,6 @@ export async function POST(req) {
       from: `"Support Cargoween" <${process.env.EMAIL_USER}>`,
       to: email,
       subject: "Vérification de connexion",
-      text: `Votre code de vérification est : ${verificationCode}`,
       html: `<p>Votre code de vérification est : <strong>${verificationCode}</strong></p>`,
     });
 

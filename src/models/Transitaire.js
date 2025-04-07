@@ -18,7 +18,9 @@ const TransitaireSchema = new mongoose.Schema({
  // Ajout des champs pour la vérification par e-mail
  verificationCode: { type: Number, default: null }, // Code temporaire
  verificationCodeExpires: { type: Date, default: null }, // Expiration du code
- isVerified: { type: Boolean, default: false }
+ isVerified: { type: Boolean, default: false },
+ ajoutePar: { type: String, default: null },
+
 }, { timestamps: true });
 
 const Transitaire = mongoose.models.Transitaire || mongoose.model("Transitaire", TransitaireSchema);

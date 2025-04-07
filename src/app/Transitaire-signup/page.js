@@ -1,9 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import Navbarlight from "@/components/Navbarlight";
-import Footer from "@/components/Footer";
-import { FaUser, FaBuilding, FaMapMarkerAlt, FaPhone, FaLock, FaGlobe } from "react-icons/fa";
+
+import { FaPlane,FaUser, FaBuilding, FaMapMarkerAlt, FaPhone, FaLock, FaGlobe ,FaEnvelope, FaEnvelopeOpen} from "react-icons/fa";
 
 export default function SignUpPage() {
   const [formData, setFormData] = useState({
@@ -20,7 +19,7 @@ export default function SignUpPage() {
     phone: "",
     cassNumber: "",
     password: "",
-    confirmPassword: "", // ✅ Ajout de la confirmation du mot de passe
+    confirmPassword: "", 
   });
 
   const [message, setMessage] = useState("");
@@ -29,25 +28,13 @@ export default function SignUpPage() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const validateCompanyID = (id) => {
-    const regex = /^[a-zA-Z0-9]{14}$/; // ✅ 14 caractères alphanumériques
-    return regex.test(id);
-  };
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setMessage("");
 
-    // ✅ Vérification des champs
-    if (formData.password !== formData.confirmPassword) {
-      setMessage("❌ Les mots de passe ne correspondent pas !");
-      return;
-    }
 
-    if (!validateCompanyID(formData.companyID)) {
-      setMessage("❌ L'ID de la compagnie doit contenir 14 caractères alphanumériques !");
-      return;
-    }
 
     try {
       const response = await fetch("/api/auth/signup", {
@@ -59,41 +46,37 @@ export default function SignUpPage() {
       const data = await response.json();
 
       if (response.ok) {
-        setMessage("✅ Inscription réussie ! Redirection...");
+        setMessage("Inscription réussie ! ");
         setTimeout(() => {
           window.location.href = "/login";
         }, 2000);
       } else {
-        setMessage(data.message || "❌ Erreur lors de l'inscription");
+        setMessage(data.message || " Erreur lors de l'inscription");
       }
     } catch (error) {
-      setMessage("❌ Erreur serveur");
+      setMessage(" Erreur serveur");
     }
   };
 
   return (
     <>
-      <Navbarlight />
 
       {/* Section avec l'image de fond */}
-      <section
-        className="flex flex-col items-center min-h-screen bg-cover bg-center pt-32"
-        style={{
-          backgroundImage: "url('/world-map.png')",
-        }}
-      >
-        {/* Formulaire opaque */}
-        <div className="bg-[#121B2D] text-white rounded-2xl p-10 shadow-lg w-[716px] mt-12">
-          <h2 className="text-center text-3xl font-semibold mb-6">Transitaires</h2>
+      <section className="relative min-h-screen bg-[#F8F8F8] flex flex-col justify-center items-center" >
+              <div className="absolute inset-0 bg-cover bg-center opacity-50" style={{ backgroundImage: "url('/world-map.png')" }}></div>
+
+
+              <div className="relative bg-[#121B2D] text-white p-12 rounded-xl shadow-lg  mt-8 lg:w-[716px]">
+          <h2 className="text-center text-3xl font-semibold mb-6">Transitaire</h2>
 
           {message && <p className={`text-center ${message.includes("✅") ? "text-green-500" : "text-red-500"}`}>{message}</p>}
 
           <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-4">
             {/* Champs de formulaire avec icônes */}
             {[
-              { name: "email", placeholder: "Email", icon: <FaUser /> },
               { name: "firstname", placeholder: "Prénom", icon: <FaUser /> },
               { name: "lastname", placeholder: "Nom", icon: <FaUser /> },
+              { name: "email", placeholder: "Email", icon: <FaEnvelope /> },
               { name: "company", placeholder: "Nom de la compagnie", icon: <FaBuilding /> },
               { name: "country", placeholder: "Pays", icon: <FaGlobe /> },
               { name: "city", placeholder: "Ville", icon: <FaMapMarkerAlt /> },
@@ -101,7 +84,7 @@ export default function SignUpPage() {
               { name: "postalCode", placeholder: "Code Postal", icon: <FaLock /> },
               { name: "companyID", placeholder: "ID de votre compagnie", icon: <FaLock /> },
               { name: "function", placeholder: "Fonction", icon: <FaBuilding /> },
-              { name: "cassNumber", placeholder: "IATA CASS Num", icon: <FaLock /> },
+              { name: "cassNumber", placeholder: "IATA CASS Num", icon: <FaPlane /> },
             ].map((field, index) => (
               <div key={index} className="relative w-full">
                 <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">{field.icon}</span>
@@ -118,18 +101,18 @@ export default function SignUpPage() {
 
             {/* Numéro de téléphone */}
             <div className="relative w-full">
-              <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">+216</span>
+              <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"><FaPhone/></span>
               <input
                 type="text"
                 name="phone"
                 placeholder="Numéro de téléphone"
                 onChange={handleChange}
-                className="pl-16 pr-4 py-3 rounded-full bg-gray-200 text-black w-full outline-none focus:ring-2 focus:ring-[#0089B6]"
+                className="pl-10 pr-4 py-3 rounded-full bg-gray-200 text-black w-full outline-none focus:ring-2 focus:ring-[#0089B6]"
                 required
               />
             </div>
 
-            {/* ✅ Champ Mot de Passe */}
+            {/* Champ Mot de Passe */}
             <div className="relative w-full">
               <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
                 <FaLock />
@@ -144,7 +127,7 @@ export default function SignUpPage() {
               />
             </div>
 
-            {/* ✅ Champ Confirmation Mot de Passe */}
+            {/*  Champ Confirmation Mot de Passe */}
             <div className="relative w-full">
               <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
                 <FaLock />
@@ -178,7 +161,6 @@ export default function SignUpPage() {
         </div>
       </section>
 
-      <Footer />
     </>
   );
 }

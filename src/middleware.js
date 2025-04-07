@@ -18,5 +18,7 @@ export async function middleware(req) {
 
 // 🔹 Appliquer le middleware uniquement aux pages protégées
 export const config = {
-  matcher: ["/dashboard/:path*"], //  Vérifie toutes les sous-pages de /dashboard
+  matcher: ["/Transitaire/:path*", "/Administrateur/:path*", "/Airline/:path*"], 
+
+  
 };

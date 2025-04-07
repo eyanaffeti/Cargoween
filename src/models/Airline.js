@@ -9,7 +9,7 @@ const AirlineSchema = new mongoose.Schema({
   city: { type: String, required: true },
   address: { type: String, required: true },
   postalCode: { type: String, required: true },
-  companyID: { type: String, required: true, unique: true, match: /^[a-zA-Z0-9]{14}$/ },
+  companyID: { type: String, required: true },
   function: { type: String, required: true },
   phone: { type: String, required: true },
   iataAirportCode: { type: String, required: true }, // ✅ Assurez-vous du nom exact

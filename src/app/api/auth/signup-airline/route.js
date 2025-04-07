@@ -18,35 +18,35 @@ export async function POST(req) {
       companyID,
       phone,
       function: roleFunction,
-      iataAirportCode, // ✅ Nom corrigé
+      iataAirportCode, 
       airlineCode,
-      iataCode // ✅ Nom corrigé
+      iataCode 
     } = await req.json();
 
-    // ✅ Connexion à MongoDB
+    //  Connexion à MongoDB
     await connectToDatabase();
 
-    // ✅ Vérification si l'email existe déjà
+    //  Vérification si l'email existe déjà
     const existingUser = await Airline.findOne({ email });
     if (existingUser) {
       return new Response(JSON.stringify({ message: "Cet email est déjà utilisé !" }), { status: 400 });
     }
 
-    // ✅ Validation du mot de passe
+    //  Validation du mot de passe
     if (password !== confirmPassword) {
       return new Response(JSON.stringify({ message: "Les mots de passe ne correspondent pas !" }), { status: 400 });
     }
 
-    // ✅ Validation de l'ID de la compagnie (14 caractères alphanumériques)
+    //  Validation de l'ID de la compagnie (14 caractères alphanumériques)
     const regex = /^[a-zA-Z0-9]{14}$/;
     if (!regex.test(companyID)) {
       return new Response(JSON.stringify({ message: "L'ID de la compagnie doit contenir 14 caractères alphanumériques !" }), { status: 400 });
     }
 
-    // ✅ Hachage du mot de passe
+    //  Hachage du mot de passe
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // ✅ Création de la Compagnie Aérienne avec le rôle
+    //  Création de la Compagnie Aérienne avec le rôle
     const newAirline = new Airline({
       email,
       password: hashedPassword,

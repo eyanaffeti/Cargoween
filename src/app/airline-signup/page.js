@@ -1,9 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import Navbarlight from "@/components/Navbarlight";
-import Footer from "@/components/Footer";
-import { FaUser, FaBuilding, FaMapMarkerAlt, FaPhone, FaLock, FaGlobe, FaPlane } from "react-icons/fa";
+import { FaUser, FaBuilding, FaMapMarkerAlt, FaPhone, FaLock, FaGlobe, FaPlane,FaEnvelope } from "react-icons/fa";
 
 export default function AirlineSignUpPage() {
   const [formData, setFormData] = useState({
@@ -35,10 +33,7 @@ export default function AirlineSignUpPage() {
     e.preventDefault();
     setMessage("");
 
-    if (formData.password !== formData.confirmPassword) {
-      setMessage("❌ Les mots de passe ne correspondent pas !");
-      return;
-    }
+   
 
     try {
       const response = await fetch("/api/auth/signup-airline", {
@@ -50,33 +45,61 @@ export default function AirlineSignUpPage() {
       const data = await response.json();
 
       if (response.ok) {
-        setMessage("✅ Inscription réussie ! Redirection...");
+        setMessage(" Inscription réussie !");
         setTimeout(() => {
           window.location.href = "/login";
         }, 2000);
       } else {
-        setMessage(data.message || "❌ Erreur lors de l'inscription");
+        setMessage(data.message || " Erreur lors de l'inscription");
       }
     } catch (error) {
-      setMessage("❌ Erreur serveur");
+      setMessage(" Erreur serveur");
     }
   };
 
   return (
     <>
-      <Navbarlight />
 
-      <section className="flex flex-col items-center min-h-screen bg-cover bg-center pt-32" style={{ backgroundImage: "url('/world-map.png')" }}>
-        <div className="bg-[#121B2D] text-white rounded-2xl p-10 shadow-lg w-[716px] mt-12">
-          <h2 className="text-center text-3xl font-semibold mb-6">Compagnie Aérienne</h2>
+      <section className="relative min-h-screen bg-[#F8F8F8] flex flex-col justify-center items-center" >
+              <div className="absolute inset-0 bg-cover bg-center opacity-50" style={{ backgroundImage: "url('/world-map.png')" }}></div>
+
+
+              <div className="relative bg-[#121B2D] text-white p-12 rounded-xl shadow-lg  mt-8 lg:w-[716px]">
+              <h2 className="text-center text-3xl font-semibold mb-6">Compagnie Aérienne</h2>
 
           {message && <p className={`text-center ${message.includes("✅") ? "text-green-500" : "text-red-500"}`}>{message}</p>}
 
           <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-4">
             {[
-              { name: "email", placeholder: "Email", icon: <FaUser /> },
               { name: "firstname", placeholder: "Prénom", icon: <FaUser /> },
               { name: "lastname", placeholder: "Nom", icon: <FaUser /> },
+              
+            ].map((field, index) => (
+              <div key={index} className="relative w-full">
+                <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">{field.icon}</span>
+                <input
+                  type="text"
+                  name={field.name}
+                  placeholder={field.placeholder}
+                  onChange={handleChange}
+                  className="pl-10 pr-4 py-3 rounded-full bg-gray-200 text-black w-full outline-none focus:ring-2 focus:ring-[#0089B6]"
+                  required
+                />
+              </div>
+            ))}
+             <div className="relative w-full">
+              <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"><FaEnvelope /></span>
+              <input
+                type="email"
+                name="email"
+                placeholder="Email"
+                onChange={handleChange}
+                className="pl-10 pr-4 py-3 rounded-full bg-gray-200 text-black w-full outline-none focus:ring-2 focus:ring-[#0089B6]"
+                required
+              />
+            </div>
+  {[
+          
               { name: "company", placeholder: "Nom de la compagnie", icon: <FaBuilding /> },
               { name: "country", placeholder: "Pays", icon: <FaGlobe /> },
               { name: "city", placeholder: "Ville", icon: <FaMapMarkerAlt /> },
@@ -101,16 +124,15 @@ export default function AirlineSignUpPage() {
                 />
               </div>
             ))}
-
             {/* Numéro de téléphone */}
             <div className="relative w-full">
-              <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">+216</span>
+              <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"><FaPhone/></span>
               <input
                 type="text"
                 name="phone"
                 placeholder="Numéro de téléphone"
                 onChange={handleChange}
-                className="pl-16 pr-4 py-3 rounded-full bg-gray-200 text-black w-full outline-none focus:ring-2 focus:ring-[#0089B6]"
+                className="pl-10 pr-4 py-3 rounded-full bg-gray-200 text-black w-full outline-none focus:ring-2 focus:ring-[#0089B6]"
                 required
               />
             </div>
@@ -159,7 +181,6 @@ export default function AirlineSignUpPage() {
         </div>
       </section>
 
-      <Footer />
     </>
   );
 }

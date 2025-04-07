@@ -1,6 +1,6 @@
 export default function Footer() {
   return (
-    <footer className="relative bg-[#121B2D] py-16  top-40">
+    <footer className="relative bg-[#121B2D] py-16  top-0">
       {/* Rectangle flou */}
       <div
         className="absolute w-[618px] h-[318px] right-[10px] top-[10px] bg-[#00DDFF] blur-[200px] z-0"
