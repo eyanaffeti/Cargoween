@@ -43,8 +43,9 @@ export default function Sidebar({ onToggle }) {
           {/* Sous-menu utilisateur */}
           {isOpen && userMenuOpen && (
             <div className="ml-8 flex flex-col space-y-2 text-sm">
-              <SidebarSubLink icon={<FaPlus />} text="Ajouter un sous-compte" href="/Transitaire/Comptes/Ajout" />
-              <SidebarSubLink icon={<FaUsers />} text="Liste des sous-comptes" href="/Transitaire/Comptes/Liste" />
+              <SidebarSubLink icon={<FaPlus />} text="Ajouter un utilisateur" href="/Administrateur/Transitaires/Ajout" />
+              <SidebarSubLink icon={<FaUsers />} text="Liste des transitaires" href="/Administrateur/Transitaires/Liste" />
+              <SidebarSubLink icon={<FaPlane />} text="Liste des compagnies aériennes" />
             </div>
           )}
 

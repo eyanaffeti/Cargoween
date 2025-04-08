@@ -1,9 +1,9 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import Sidebar from "@/components/Sidebar";
+import Sidebar from "@/components/sidebare-admin";
 import {
-  FaCog, FaEnvelope, FaUser, FaPhone, FaMapMarkerAlt,
+   FaEnvelope, FaUser, FaPhone, FaMapMarkerAlt,
   FaBriefcase, FaBuilding, FaIdBadge, FaLock, FaGlobe,
   FaCity, FaHome, FaBarcode
 } from "react-icons/fa";

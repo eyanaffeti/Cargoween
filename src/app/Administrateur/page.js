@@ -1,12 +1,8 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import Sidebar from "@/components/Sidebar";
-import {
-  FaCog, FaEnvelope, FaUser, FaPhone, FaMapMarkerAlt,
-  FaBriefcase, FaBuilding, FaIdBadge, FaLock, FaGlobe,
-  FaCity, FaHome, FaBarcode
-} from "react-icons/fa";
+import Sidebar from "@/components/sidebare-admin";
+import {FaUser} from "react-icons/fa";
 
 export default function AddTransitaire() {
   const router = useRouter();
@@ -33,35 +29,8 @@ export default function AddTransitaire() {
     fetchUser();
   }, []);
 
-  const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setMessage("");
-    if (formData.password !== formData.confirmPassword) return setMessage("❌ Les mots de passe ne correspondent pas !");
-    const payload = {
-      ...formData,
-      isSecondary: true,
-      primaryTransitaireEmail: user?.email
-    };
-    try {
-      const res = await fetch("/api/auth/signup", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-      const data = await res.json();
-      if (res.ok) {
-        setMessage("✅ Transitaire ajouté avec succès !");
-        setTimeout(() => router.push("/dashboard"), 2000);
-      } else {
-        setMessage(data.message || "❌ Erreur lors de l'ajout");
-      }
-    } catch {
-      setMessage("❌ Erreur serveur");
-    }
-  };
-
+ 
   return (
     <div className="flex">
       <Sidebar onToggle={setSidebarOpen} />
