@@ -1,20 +1,30 @@
 "use client";
 
 import { useState } from "react";
-import {
-  FaUser, FaSearch, FaCalendar, FaBox, FaCog, FaSignOutAlt,
-  FaBars, FaTimes, FaPlus, FaPlane, FaUsers
-} from "react-icons/fa";
-import Link from "next/link"; 
-
+import { FaUser, FaSearch, FaCalendar, FaBox, FaCog, FaSignOutAlt, FaBars, FaTimes, FaPlus, FaPlane, FaUsers } from "react-icons/fa";
+import Link from "next/link";
+import { useRouter } from "next/navigation"; // Importation du router de Next.js
 
 export default function Sidebar({ onToggle }) {
   const [isOpen, setIsOpen] = useState(true);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const router = useRouter(); // Initialisation du router pour la redirection
 
   const handleToggle = () => {
     setIsOpen(!isOpen);
     onToggle && onToggle(!isOpen);
+  };
+
+  // Fonction de déconnexion
+  const handleLogout = () => {
+    // Supprimer le token de l'utilisateur dans localStorage
+    localStorage.removeItem("token");
+
+    // Optionnel : Supprimer le token du cookie également
+    document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+
+    // Redirection vers la page de connexion après la déconnexion
+    router.push("/login"); // Remplacez '/login' par le chemin de votre page de connexion si nécessaire
   };
 
   return (
@@ -40,12 +50,13 @@ export default function Sidebar({ onToggle }) {
             <SidebarLink icon={<FaUser />} text="Utilisateur" isOpen={isOpen} />
           </div>
 
-          {/* Sous-menu utilisateur */}
-          {isOpen && userMenuOpen && (
+           {/* Sous-menu utilisateur */}
+           {isOpen && userMenuOpen && (
             <div className="ml-8 flex flex-col space-y-2 text-sm">
               <SidebarSubLink icon={<FaPlus />} text="Ajouter un utilisateur" href="/Administrateur/Transitaires/Ajout" />
               <SidebarSubLink icon={<FaUsers />} text="Liste des transitaires" href="/Administrateur/Transitaires/Liste" />
-              <SidebarSubLink icon={<FaPlane />} text="Liste des compagnies aériennes" />
+              <SidebarSubLink icon={<FaPlus />} text="Ajouter une compagnie aérienne" href="/Administrateur/Compagnie/Ajout" />
+              <SidebarSubLink icon={<FaPlane />} text="Liste des compagnies aériennes " href="/Administrateur/Compagnie/Liste" />
             </div>
           )}
 
@@ -58,20 +69,24 @@ export default function Sidebar({ onToggle }) {
 
       {/* Déconnexion en bas */}
       <div className="mb-6 px-4">
-        <SidebarLink icon={<FaSignOutAlt />} text="Se Déconnecter" isOpen={isOpen} />
+        <SidebarLink icon={<FaSignOutAlt />} text="Se Déconnecter" isOpen={isOpen} onClick={handleLogout} /> {/* Appel de la fonction handleLogout */}
       </div>
     </div>
   );
 }
 
-function SidebarLink({ icon, text, isOpen }) {
+function SidebarLink({ icon, text, isOpen, onClick }) {
   return (
-    <div className="flex items-center space-x-3 hover:bg-white/10 p-3 rounded-lg cursor-pointer transition-all">
+    <div
+      className="flex items-center space-x-3 hover:bg-white/10 p-3 rounded-lg cursor-pointer transition-all"
+      onClick={onClick} // Ajout de l'événement onClick pour la déconnexion
+    >
       {icon}
       {isOpen && <span>{text}</span>}
     </div>
   );
 }
+
 function SidebarSubLink({ icon, text, href }) {
   const content = (
     <div className="flex items-center space-x-2 text-white hover:text-gray-200 cursor-pointer">
@@ -82,4 +97,3 @@ function SidebarSubLink({ icon, text, href }) {
 
   return href ? <Link href={href}>{content}</Link> : content;
 }
-
