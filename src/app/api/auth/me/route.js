@@ -36,10 +36,20 @@ export const GET = async (req) => {
 
     // Retourner les infos communes à tous les utilisateurs
     return NextResponse.json({
+      _id: user._id,
       firstname: user.firstname,
       lastname: user.lastname,
       email: user.email,
       role: user.role,
+      phone: user.phone || "",
+      address: user.address || "",
+      company: user.company || "",
+      country: user.country || "",
+      city: user.city || "",
+      postalCode: user.postalCode || "",
+      companyID: user.companyID || "",
+      function: user.function || "",
+      cassNumber: user.cassNumber || "",
     });
 
   } catch (error) {

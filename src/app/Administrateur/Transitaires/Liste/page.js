@@ -3,6 +3,10 @@
 import { useState, useEffect } from "react";
 import Sidebar from "@/components/sidebare-admin";
 import { FaEnvelope, FaUser, FaPhone,FaBriefcase,FaBuilding ,FaGlobe, FaCity,FaHome, FaBarcode ,FaIdBadge ,  FaEye, FaEdit, FaTrash, FaSearch, FaFileDownload, FaUserFriends, FaChevronRight, FaChevronLeft } from "react-icons/fa";
+import * as XLSX from "xlsx"; // Pour l'export Excel
+import Papa from "papaparse"; // Pour l'export CSV
+import { jsPDF } from "jspdf";
+import autoTable from "jspdf-autotable"	
 
 export default function PageTransitaires() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -16,6 +20,7 @@ export default function PageTransitaires() {
   const [currentPage, setCurrentPage] = useState(1);
   const [formData, setFormData] = useState({});
   const [selectedTransitaireIds, setSelectedTransitaireIds] = useState([]);
+  const [userMenuOpen, setUserMenuOpen] = useState(false); 
 
 
   useEffect(() => {
@@ -45,6 +50,16 @@ export default function PageTransitaires() {
 
     fetchUser();
     fetchTransitaires();
+    const handleClickOutside = (e) => {
+      if (!e.target.closest(".user-menu")) {
+        setUserMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+
   }, []);
   
 
@@ -71,17 +86,26 @@ export default function PageTransitaires() {
 
   // Filtrage des transitaires en fonction de la recherche
   const filteredTransitaires = transitaires.filter((t) => {
+    const term = searchTerm.toLowerCase();
     return (
-      t.firstname.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      t.lastname.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      t.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      t.phone.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      t.function.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      t.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      t.role.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      new Date(t.createdAt).toLocaleDateString().includes(searchTerm) 
+      (t.firstname && t.firstname.toLowerCase().includes(term)) ||
+      (t.lastname && t.lastname.toLowerCase().includes(term)) ||
+      (t.email && t.email.toLowerCase().includes(term)) ||
+      (t.phone && t.phone.toLowerCase().includes(term)) ||
+      (t.function && t.function.toLowerCase().includes(term)) ||
+      (t.company && t.company.toLowerCase().includes(term)) ||
+      (t.role && t.role.toLowerCase().includes(term)) ||
+      (t.country && t.country.toLowerCase().includes(term)) ||
+      (t.city && t.city.toLowerCase().includes(term)) ||
+      (t.address && t.address.toLowerCase().includes(term)) ||
+      (t.postalCode && t.postalCode.toLowerCase().includes(term)) ||
+      (t.companyID && t.companyID.toLowerCase().includes(term)) ||
+      (t.cassNumber && t.cassNumber.toLowerCase().includes(term)) ||
+      (t.ajoutePar && t.ajoutePar.toLowerCase().includes(term)) ||
+      (new Date(t.createdAt).toLocaleDateString().toLowerCase().includes(term))
     );
   });
+  
   const totalPages = Math.ceil(filteredTransitaires.length / itemsPerPage);
   const displayedTransitaires = filteredTransitaires.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
   // Afficher les détails dans une pop-up
@@ -156,6 +180,136 @@ const toggleSelection = (id) => {
       : [...prevState, id] // Select
   );
 };
+const exportFields = (t) => ({
+  "Créé le": new Date(t.createdAt).toLocaleDateString() || "",
+  Nom: t.lastname || "",
+  Prénom: t.firstname || "",
+  Email: t.email || "",
+  Téléphone: t.phone || "",
+  Fonction: t.function || "",
+  Entreprise: t.company || "",
+  Pays: t.country || "",
+  Ville: t.city || "",
+  Adresse: t.address || "",
+  "Code Postal": t.postalCode || "",
+  "ID Compagnie": t.companyID || "",
+  "Numéro CASS": t.cassNumber || "",
+  "Ajouté Par": t.ajoutePar || "—",
+});
+
+
+// Export JSON
+const exportToJSON = () => {
+
+  const data = (selectedTransitaireIds.length > 0
+    ? transitaires.filter((t) => selectedTransitaireIds.includes(t._id))
+    : displayedTransitaires
+  ).map(exportFields);
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = "transitaires.json";
+  link.click();
+};
+
+
+// Export Excel
+const exportToExcel = () => {
+  const data = (selectedTransitaireIds.length > 0
+    ? transitaires.filter((t) => selectedTransitaireIds.includes(t._id))
+    : displayedTransitaires
+  ).map(exportFields);
+  const ws = XLSX.utils.json_to_sheet(data);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Transitaires");
+  XLSX.writeFile(wb, "transitaires.xlsx");
+};
+
+
+// Export CSV
+const exportToCSV = () => {
+  const data = (selectedTransitaireIds.length > 0
+    ? transitaires.filter((t) => selectedTransitaireIds.includes(t._id))
+    : displayedTransitaires
+  ).map(exportFields);  const csv = Papa.unparse(data);
+  const blob = new Blob([csv], { type: "text/csv" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = "transitaires.csv";
+  link.click();
+};
+
+const handleExportPDF = () => {
+  const doc = new jsPDF('landscape'); // paysage pour plus d'espace horizontal
+
+  const columns = [
+   "Créé Le","Nom", "Prénom", "Email", "Téléphone", "Fonction", "Entreprise",
+    "Pays", "Ville", "Adresse", "Code Postal", "ID Compagnie", "Numéro CASS",  "Ajouté Par", 
+  ];
+
+  const data = (selectedTransitaireIds.length > 0
+    ? transitaires.filter((t) => selectedTransitaireIds.includes(t._id))
+    : displayedTransitaires
+  ).map(t => [    new Date(t.createdAt).toLocaleDateString() || "—",
+    t.lastname || "",
+    t.firstname || "",
+    t.email || "",
+    t.phone || "",
+    t.function || "",
+    t.company || "",
+    t.country || "",
+    t.city || "",
+    t.address || "",
+    t.postalCode || "",
+    t.companyID || "",
+    t.cassNumber || "",
+    t.ajoutePar || "—",
+  ]);
+
+  doc.setFontSize(14);
+  doc.text("Liste des Transitaires", 14, 15);
+
+  autoTable(doc, {
+    startY: 25,
+    head: [columns],
+    body: data,
+    theme: 'grid',
+    styles: {
+      fontSize: 7,
+      cellPadding: 2,
+      overflow: 'linebreak', // important pour les longues valeurs
+    },
+    headStyles: {
+      fillColor: [63, 101, 146],
+      textColor: [255, 255, 255],
+      fontStyle: 'bold',
+      halign: 'center',
+    },
+    bodyStyles: {
+      halign: 'center',
+      valign: 'middle',
+      textColor: [0, 0, 0],
+    },
+    margin: {
+      left: 5,   // Réduit la marge gauche (par défaut : 40)
+      right: 1,  // (optionnel) ajuste la droite aussi pour équilibre
+      top: 25,
+    },
+    tableWidth: 'wrap', // laisse autoTable gérer l'espace
+    didDrawPage: (data) => {
+      // facultatif : ajoute la date
+      doc.setFontSize(10);
+      doc.text(`Date: ${new Date().toLocaleDateString()}`, data.settings.margin.left, doc.internal.pageSize.height - 10);
+    },
+  });
+
+  doc.save("transitaires.pdf");
+};
+
+
+
 
 
   return (
@@ -163,10 +317,42 @@ const toggleSelection = (id) => {
       <Sidebar onToggle={setSidebarOpen} />
       <main className={`transition-all duration-300 flex-1 min-h-screen bg-[#3F6592] p-4 md:p-8 ${sidebarOpen ? 'ml-64' : 'ml-20'}`}>
         <div className="bg-white rounded-3xl py-12 px-8 shadow-lg relative overflow-x-auto">
-          <button className="absolute top-14 right-8 flex items-center bg-[#3F6592] text-white py-1 px-4 rounded-full shadow-md">
-            <FaUser className="mr-2" />
-            <span>{user ? `${user.firstname} ${user.lastname}` : "Utilisateur"}</span>
-          </button>
+        <div className="absolute top-14 right-8">
+  <div className="relative user-menu">
+    <button
+      className="flex items-center bg-[#3F6592] text-white py-1 px-4 rounded-full shadow-md"
+      onClick={() => setUserMenuOpen(!userMenuOpen)}
+    >
+      <FaUser className="mr-2" />
+      <span>{user ? `${user.firstname} ${user.lastname}` : "Utilisateur"}</span>
+    </button>
+
+    {userMenuOpen && (
+      <div className="absolute right-0 mt-2 w-48 bg-white text-[#3F6592] rounded-lg shadow-lg z-50">
+        <button
+          onClick={() => {
+            setUserMenuOpen(false);
+            window.location.href = "/Administrateur/Profil"; 
+          }}
+          className="w-full text-left px-4 py-2 hover:bg-gray-100"
+        >
+          Modifier profil
+        </button>
+        <button
+          onClick={() => {
+            localStorage.removeItem("token");
+            document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+            window.location.href = "/login";
+          }}
+          className="w-full text-left px-4 py-2 hover:bg-gray-100"
+        >
+          Se déconnecter
+        </button>
+      </div>
+    )}
+  </div>
+</div>
+
 
           {/* Titre et recherche */}
           <div className="flex justify-start items-center mb-8 mt-6">
@@ -191,15 +377,17 @@ const toggleSelection = (id) => {
                 <option value={20}>20 lignes</option>
               </select>
 
-              <select className="border border-gray-300 rounded-full py-2 px-4">
-                <option>Exporter en :</option>
-                <option>PDF</option>
-                <option>Excel</option>
-                <option>CSV</option>
-                <option>JSON</option>
-              </select>
-              <button className="bg-[#3F6592] text-white px-3 py-2 rounded-full">
-                <FaFileDownload />
+              <button onClick={exportToJSON} className="border border-gray-300 rounded-full py-2 px-4">
+                Exporter en JSON
+              </button>
+              <button onClick={exportToExcel} className="border border-gray-300 rounded-full py-2 px-4">
+                Exporter en Excel
+              </button>
+              <button onClick={exportToCSV} className="border border-gray-300 rounded-full py-2 px-4">
+                Exporter en CSV
+              </button>
+              <button onClick={handleExportPDF} className="border border-gray-300 rounded-full py-2 px-4">
+                Exporter en PDF
               </button>
               <button className="bg-[#0EC953] text-white px-5 py-2 rounded-full font-semibold" onClick={() => (window.location.href = "/Administrateur/Transitaires/Ajout")}>Ajouter</button>
 

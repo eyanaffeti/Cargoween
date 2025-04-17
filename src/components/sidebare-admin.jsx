@@ -55,8 +55,8 @@ export default function Sidebar({ onToggle }) {
             <div className="ml-8 flex flex-col space-y-2 text-sm">
               <SidebarSubLink icon={<FaPlus />} text="Ajouter un utilisateur" href="/Administrateur/Transitaires/Ajout" />
               <SidebarSubLink icon={<FaUsers />} text="Liste des transitaires" href="/Administrateur/Transitaires/Liste" />
-              <SidebarSubLink icon={<FaPlus />} text="Ajouter une compagnie aérienne" href="/Administrateur/Compagnie/Ajout" />
-              <SidebarSubLink icon={<FaPlane />} text="Liste des compagnies aériennes " href="/Administrateur/Compagnie/Liste" />
+              <SidebarSubLink icon={<FaPlus />} text="Ajouter une compagnie aérienne" href="/Administrateur/Compagnies/Ajout" />
+              <SidebarSubLink icon={<FaPlane />} text="Liste des compagnies aériennes " href="/Administrateur/Compagnies/Liste" />
             </div>
           )}
 

@@ -1,8 +1,7 @@
 import { connectToDatabase } from "@/lib/mongodb";
 import Admin from "@/models/Admin";
 import bcrypt from "bcryptjs";
-import { NextResponse } from "next/server"; // 👈 à importer
-
+import { NextResponse } from "next/server"; 
 export async function GET(req) {
   try {
     await connectToDatabase();  // Connexion à la base de données
