@@ -63,7 +63,7 @@ export default function Sidebar({ onToggle }) {
             </div>
           )}
 
-          <SidebarLink icon={<FaSearch />} text="Recherche" isOpen={isOpen} />
+          <SidebarLink icon={<FaSearch />} text="Recherche" href="/Transitaire/Reservation" isOpen={isOpen} />
           <SidebarLink icon={<FaCalendar />} text="Réservation" isOpen={isOpen} />
           <SidebarLink icon={<FaBox />} text="Stock LTA" isOpen={isOpen} />
           <SidebarLink icon={<FaCog />} text="Paramètres" isOpen={isOpen} />
@@ -78,17 +78,20 @@ export default function Sidebar({ onToggle }) {
   );
 }
 
-function SidebarLink({ icon, text, isOpen, onClick }) {
-  return (
+function SidebarLink({ icon, text, isOpen, onClick, href }) {
+  const content = (
     <div
-    className="flex items-center space-x-3 hover:bg-white/10 p-3 rounded-lg cursor-pointer transition-all"
-    onClick={onClick} // Ajout de l'événement onClick pour la déconnexion
-  >
-    {icon}
-    {isOpen && <span>{text}</span>}
-  </div>
+      className="flex items-center space-x-3 hover:bg-white/10 p-3 rounded-lg cursor-pointer transition-all"
+      onClick={onClick}
+    >
+      {icon}
+      {isOpen && <span>{text}</span>}
+    </div>
   );
+
+  return href ? <Link href={href}>{content}</Link> : content;
 }
+
 function SidebarSubLink({ icon, text, href }) {
   const content = (
     <div className="flex items-center space-x-2 text-white hover:text-gray-200 cursor-pointer">

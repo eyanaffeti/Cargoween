@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { FaPlaneDeparture, FaPlaneArrival, FaCalendarAlt, FaUser, FaPlane } from "react-icons/fa";
-import Sidebar from "@/components/sidebare-admin";
+import Sidebar from "@/components/Sidebar";
 
 
 
@@ -33,18 +33,46 @@ export default function Reservation() {
     LH: "Lufthansa",
     TU: "Tunisair",
     EK: "Emirates",
-    UG: "Tunisair Express"
-  
+    UG: "Tunisair Express",
+    AA: "American Airlines",
+    AC: "Air Canada",
+    BA: "British Airways",
+    DL: "Delta Air Lines",
+    KL: "KLM Royal Dutch Airlines",
+    SU: "Aeroflot Russian Airlines",
+    UA: "United Airlines",
+    AI: "Air India",
+    QF: "Qantas Airways",
+    NH: "All Nippon Airways",
+    SQ: "Singapore Airlines",
+    CX: "Cathay Pacific",
+    KE: "Korean Air",
+    ET: "Ethiopian Airlines"
   };
+  
   const airports = [
     { code: "TUN", name: "Tunis-Carthage Airport" },
     { code: "CDG", name: "Paris Charles de Gaulle" },
+    { code: "ORY", name: "Paris Orly Airport" },
     { code: "FRA", name: "Frankfurt Airport" },
     { code: "IST", name: "Istanbul Airport" },
     { code: "CAI", name: "Cairo Airport" },
     { code: "CMN", name: "Casablanca Airport" },
-    { code: "ALG", name: "Algiers Houari Boumediene" }
+    { code: "ALG", name: "Algiers Houari Boumediene" },
+    { code: "JFK", name: "John F. Kennedy International Airport" },
+    { code: "LHR", name: "London Heathrow Airport" },
+    { code: "DXB", name: "Dubai International Airport" },
+    { code: "HND", name: "Tokyo Haneda Airport" },
+    { code: "LAX", name: "Los Angeles International Airport" },
+    { code: "AMS", name: "Amsterdam Schiphol Airport" },
+    { code: "SIN", name: "Singapore Changi Airport" },
+    { code: "SYD", name: "Sydney Kingsford Smith Airport" },
+    { code: "PEK", name: "Beijing Capital International Airport" },
+    { code: "GRU", name: "São Paulo–Guarulhos International Airport" },
+    { code: "MEX", name: "Mexico City International Airport" },
+    { code: "NRT", name: "Tokyo Narita Airport" }
   ];
+  
   
 
   
@@ -65,51 +93,57 @@ export default function Reservation() {
   const handleSearch = async () => {
     setMessage("");
     setResults([]);
-    setLoading(true); 
-
+    setLoading(true);
+  
     const dates = Array.from({ length: 7 }, (_, i) => {
       const d = new Date(date);
       d.setDate(d.getDate() + i);
       return d.toISOString().split('T')[0];
     });
-
+  
     const allFlights = [];
-
+  
     try {
-      await Promise.all(dates.map(async (currentDate) => {
+      for (const currentDate of dates) {
         const response = await fetch("/api/amadeus/flights", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ origin: from, destination: to, date: currentDate }),
         });
-
+  
         const data = await response.json();
-        if (response.ok) {
+        if (response.ok && Array.isArray(data)) {
           allFlights.push(...data);
         }
-      }));
-
+      }
+  
+      if (allFlights.length === 0) {
+        setMessage("Aucun vol trouvé pour les 7 jours sélectionnés.");
+        setLoading(false);
+        return;
+      }
+  
       const grouped = {};
       const tags = {};
       const datesSet = new Set(dates);
-
+  
       allFlights.forEach((flight) => {
         const airline = flight.validatingAirlineCodes[0];
         const price = parseFloat(flight.price.total);
         const segment = flight.itineraries[0].segments[0];
         const flightDate = segment.departure.at.split("T")[0];
         const flightNumber = segment.carrierCode + segment.number;
-
+  
         if (!datesSet.has(flightDate)) return;
-
+  
         if (!grouped[airline]) grouped[airline] = {};
         grouped[airline][flightDate] = { price, flightNumber };
       });
-
+  
       dates.forEach((date) => {
         let cheapestPrice = Infinity;
         let bestPrice = Infinity;
-
+  
         Object.keys(grouped).forEach((airline) => {
           const flight = grouped[airline][date];
           if (flight) {
@@ -117,30 +151,29 @@ export default function Reservation() {
             bestPrice = Math.min(bestPrice, flight.price);
           }
         });
-
+  
         Object.keys(grouped).forEach((airline) => {
           const flight = grouped[airline][date];
           if (flight) {
             if (!tags[date]) tags[date] = {};
             tags[date][airline] = [];
-
+  
             if (flight.price === cheapestPrice) tags[date][airline].push("Cheap");
             if (flight.price <= bestPrice * 1.2) tags[date][airline].push("Best");
             if (Math.random() > 0.7) tags[date][airline].push("Green");
           }
         });
       });
-
+  
       setResults({ grouped, tags, dates });
-
     } catch (err) {
       console.error(err);
       setMessage("Erreur serveur");
-
-    } 
-    setLoading(false); // ✅ Fin du chargement
-
+    }
+  
+    setLoading(false);
   };
+  
 
   const filteredAirlines = Object.entries(results.grouped || {}).filter(([airline]) =>
     airlineNames[airline]?.toLowerCase().includes(searchAirline.toLowerCase()) ||
@@ -152,18 +185,45 @@ export default function Reservation() {
       <Sidebar onToggle={setSidebarOpen} />
       <main className={`transition-all duration-300 flex-1 min-h-screen bg-[#3F6592] p-8 ${sidebarOpen ? 'ml-64' : 'ml-20'}`}>
         <div className="bg-white rounded-3xl p-10 shadow-lg relative">
-          <div className="absolute top-10 right-10">
-            <button
-              className="flex items-center bg-[#3F6592] text-white py-1 px-4 rounded-full shadow-md"
-              onClick={() => setUserMenuOpen(!userMenuOpen)}
-            >
-              <FaUser className="mr-2" />
-              <span>{user ? `${user.firstname} ${user.lastname}` : "Utilisateur"}</span>
-            </button>
-          </div>
+        <div className="absolute top-14 right-8">
 
+<div className="relative user-menu">
+<button
+className="flex items-center bg-[#3F6592] text-white py-1 px-4 rounded-full shadow-md"
+onClick={() => setUserMenuOpen(!userMenuOpen)}
+>
+<FaUser className="mr-2" />
+<span>{user ? `${user.firstname} ${user.lastname}` : "Utilisateur"}</span>
+</button>
+
+{userMenuOpen && (
+<div className="absolute right-0 mt-2 w-48 bg-white text-[#3F6592] rounded-lg shadow-lg z-50">
+<button
+  onClick={() => {
+    setUserMenuOpen(false);
+    window.location.href = "/Transitaire/Profil"; 
+  }}
+  className="w-full text-left px-4 py-2 hover:bg-gray-100"
+>
+  Modifier profil
+</button>
+<button
+  onClick={() => {
+    localStorage.removeItem("token");
+    document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+    window.location.href = "/login";
+  }}
+  className="w-full text-left px-4 py-2 hover:bg-gray-100"
+>
+  Se déconnecter
+</button>
+</div>
+)}
+</div>
+</div>
+<h2 className="text-2xl font-bold text-center text-[#3F6592]  mt-24 mb-10">🔍 Recherche de Vols </h2>
        
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+<div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8 mt-24">
         
           <div className="relative">
           <FaPlane className="absolute top-3 left-3 text-gray-400" />  
@@ -293,7 +353,7 @@ export default function Reservation() {
               <img
                 src={`https://images.kiwi.com/airlines/64/${airline}.png`}
                 alt={airline}
-                className="w-8 h-8 object-contain"
+                className="w-34 h-18 object-contain"
                 onError={(e) => { e.target.onerror = null; e.target.src = '/fallback-logo.png'; }}
               />
               <div>
