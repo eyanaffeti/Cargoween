@@ -2,6 +2,8 @@
 import { useState, useEffect } from "react";
 import { FaPlaneDeparture, FaPlaneArrival, FaCalendarAlt, FaUser, FaPlane } from "react-icons/fa";
 import Sidebar from "@/components/Sidebar";
+import FlightDetailsModal from "@/components/FlightDetailsModal";
+
 
 
 
@@ -20,6 +22,8 @@ export default function Reservation() {
   const [searchAirline, setSearchAirline] = useState("");
   const [fromSuggestions, setFromSuggestions] = useState([]);
   const [toSuggestions, setToSuggestions] = useState([]);
+  const [selectedFlight, setSelectedFlight] = useState(null);
+
   const airlineNames = {
     BJ: "Nouvelair",
     AZ: "ITA Airways",
@@ -51,28 +55,78 @@ export default function Reservation() {
   };
   
   const airports = [
-    { code: "TUN", name: "Tunis-Carthage Airport" },
-    { code: "CDG", name: "Paris Charles de Gaulle" },
-    { code: "ORY", name: "Paris Orly Airport" },
-    { code: "FRA", name: "Frankfurt Airport" },
-    { code: "IST", name: "Istanbul Airport" },
-    { code: "CAI", name: "Cairo Airport" },
-    { code: "CMN", name: "Casablanca Airport" },
-    { code: "ALG", name: "Algiers Houari Boumediene" },
-    { code: "JFK", name: "John F. Kennedy International Airport" },
-    { code: "LHR", name: "London Heathrow Airport" },
-    { code: "DXB", name: "Dubai International Airport" },
-    { code: "HND", name: "Tokyo Haneda Airport" },
-    { code: "LAX", name: "Los Angeles International Airport" },
-    { code: "AMS", name: "Amsterdam Schiphol Airport" },
-    { code: "SIN", name: "Singapore Changi Airport" },
-    { code: "SYD", name: "Sydney Kingsford Smith Airport" },
-    { code: "PEK", name: "Beijing Capital International Airport" },
-    { code: "GRU", name: "São Paulo–Guarulhos International Airport" },
-    { code: "MEX", name: "Mexico City International Airport" },
-    { code: "NRT", name: "Tokyo Narita Airport" }
+    { code: "TUN", name: "Tunis-Carthage Airport", countryCode: "TN" },
+    { code: "CDG", name: "Paris Charles de Gaulle", countryCode: "FR" },
+    { code: "FRA", name: "Frankfurt Airport", countryCode: "DE" },
+    { code: "LAX", name: "Los Angeles International", countryCode: "US" },
+    { code: "DJE", name: "Djerba-Zarzis Airport", countryCode: "TN" },
+    { code: "LAX", name: "Los Angeles International", countryCode: "US" },
+    { code: "NBE", name: "Enfidha-Hammamet International Airport", countryCode: "TN" },
+    { code: "IST", name: "Istanbul Airport", countryCode: "TR" },
+    { code: "ORY", name: "Paris Orly Airport", countryCode: "FR" },
+    { code: "CAI", name: "Cairo Airport", countryCode: "EG" },
+    { code: "CMN", name: "Casablanca Mohammed V", countryCode: "MA" },
+    { code: "ALG", name: "Algiers Houari Boumediene", countryCode: "DZ" },
+    { code: "JFK", name: "John F. Kennedy International", countryCode: "US" },
+    { code: "LHR", name: "London Heathrow", countryCode: "GB" },
+    { code: "LGW", name: "London Gatwick", countryCode: "GB" },
+    { code: "DXB", name: "Dubai International Airport", countryCode: "AE" },
+    { code: "HND", name: "Tokyo Haneda", countryCode: "JP" },
+    { code: "NRT", name: "Tokyo Narita", countryCode: "JP" },
+    { code: "LAX", name: "Los Angeles International", countryCode: "US" },
+    { code: "ORD", name: "Chicago O'Hare", countryCode: "US" },
+    { code: "ATL", name: "Atlanta Hartsfield-Jackson", countryCode: "US" },
+    { code: "AMS", name: "Amsterdam Schiphol", countryCode: "NL" },
+    { code: "MAD", name: "Madrid Barajas", countryCode: "ES" },
+    { code: "BCN", name: "Barcelona El Prat", countryCode: "ES" },
+    { code: "FCO", name: "Rome Fiumicino", countryCode: "IT" },
+    { code: "MXP", name: "Milan Malpensa", countryCode: "IT" },
+    { code: "ZRH", name: "Zurich Airport", countryCode: "CH" },
+    { code: "GVA", name: "Geneva Airport", countryCode: "CH" },
+    { code: "VIE", name: "Vienna International", countryCode: "AT" },
+    { code: "BRU", name: "Brussels Airport", countryCode: "BE" },
+    { code: "CPT", name: "Cape Town International", countryCode: "ZA" },
+    { code: "JNB", name: "Johannesburg OR Tambo", countryCode: "ZA" },
+    { code: "BKK", name: "Bangkok Suvarnabhumi", countryCode: "TH" },
+    { code: "SIN", name: "Singapore Changi", countryCode: "SG" },
+    { code: "KUL", name: "Kuala Lumpur International", countryCode: "MY" },
+    { code: "SYD", name: "Sydney Kingsford Smith", countryCode: "AU" },
+    { code: "MEL", name: "Melbourne Airport", countryCode: "AU" },
+    { code: "PEK", name: "Beijing Capital", countryCode: "CN" },
+    { code: "PVG", name: "Shanghai Pudong", countryCode: "CN" },
+    { code: "ICN", name: "Seoul Incheon", countryCode: "KR" },
+    { code: "DEL", name: "Indira Gandhi Intl (Delhi)", countryCode: "IN" },
+    { code: "BOM", name: "Chhatrapati Shivaji (Mumbai)", countryCode: "IN" },
+    { code: "GRU", name: "São Paulo Guarulhos", countryCode: "BR" },
+    { code: "EZE", name: "Buenos Aires Ezeiza", countryCode: "AR" },
+    { code: "SCL", name: "Santiago Arturo Merino Benítez", countryCode: "CL" },
+    { code: "MEX", name: "Mexico City Benito Juárez", countryCode: "MX" },
+    { code: "YUL", name: "Montréal-Trudeau", countryCode: "CA" },
+    { code: "YYZ", name: "Toronto Pearson", countryCode: "CA" },
+    { code: "YVR", name: "Vancouver International", countryCode: "CA" },
+    { code: "DOH", name: "Hamad International (Doha)", countryCode: "QA" },
+    { code: "JED", name: "King Abdulaziz Intl (Jeddah)", countryCode: "SA" }
   ];
   
+  
+  
+  const freightRatesPerKg = {
+  BJ: 1.9,
+  AZ: 2.3,
+  AT: 2.0,
+  A3: 2.4,
+  TK: 2.8,
+  AF: 2.5,
+  MS: 2.2,
+  AH: 2.1,
+  QR: 3.0,
+  LH: 2.6,
+  TU: 1.5,
+  EK: 2.7,
+  UG: 1.6,
+  // Ajoute les autres compagnies selon ton besoin...
+};
+
   
 
   
@@ -130,15 +184,27 @@ export default function Reservation() {
       allFlights.forEach((flight) => {
         const airline = flight.validatingAirlineCodes[0];
         const price = parseFloat(flight.price.total);
-        const segment = flight.itineraries[0].segments[0];
-        const flightDate = segment.departure.at.split("T")[0];
-        const flightNumber = segment.carrierCode + segment.number;
-  
+        const segments = flight.itineraries[0].segments;
+      
+        const validSegment = segments.find(
+          seg => seg.departure.iataCode === from && seg.arrival.iataCode === to
+        );
+      
+        if (!validSegment) return; // ignorer les vols qui ne correspondent pas
+      
+        const flightDate = validSegment.departure.at.split("T")[0];
+        const flightNumber = validSegment.carrierCode + validSegment.number;
+      
         if (!datesSet.has(flightDate)) return;
-  
+      
         if (!grouped[airline]) grouped[airline] = {};
-        grouped[airline][flightDate] = { price, flightNumber };
-      });
+        grouped[airline][flightDate] = {
+          price,
+          flightNumber,
+          segments, // 👈 on ajoute les segments ici
+        };
+              });
+      
   
       dates.forEach((date) => {
         let cheapestPrice = Infinity;
@@ -235,7 +301,7 @@ onClick={() => setUserMenuOpen(!userMenuOpen)}
 
 
            {/* Champ FROM avec suggestions */}
-<div className="relative">
+           <div className="relative">
   <FaPlaneDeparture className="absolute top-3 left-3 text-gray-400" />
   <input
     type="text"
@@ -253,7 +319,7 @@ onClick={() => setUserMenuOpen(!userMenuOpen)}
     className="w-full p-3 pl-10 border-2 border-[#3F6592] rounded-lg"
   />
   {fromSuggestions.length > 0 && (
-    <ul className="absolute z-10 bg-white border border-gray-300 rounded mt-1 max-h-40 overflow-y-auto w-full">
+    <ul className="absolute z-50 bg-white border border-gray-300 rounded-lg mt-2 shadow-lg max-h-60 overflow-y-auto w-full animate-fade-in">
       {fromSuggestions.map((a, i) => (
         <li
           key={i}
@@ -261,14 +327,23 @@ onClick={() => setUserMenuOpen(!userMenuOpen)}
             setFrom(a.code);
             setFromSuggestions([]);
           }}
-          className="px-4 py-2 hover:bg-[#3F6592] hover:text-white cursor-pointer"
+          className="px-4 py-2 hover:bg-[#3F6592] hover:text-white transition-all duration-200 cursor-pointer flex items-center gap-3"
         >
-          {a.name} ({a.code})
+          <img
+            src={`https://flagcdn.com/32x24/${a.countryCode.toLowerCase()}.png`}
+            alt={a.countryCode}
+            className="w-6 h-4 object-contain rounded-sm shadow-sm border"
+          />
+          <div className="text-sm">
+            <div className="font-semibold">{a.name}</div>
+            <div className="text-xs text-gray-500">({a.code})</div>
+          </div>
         </li>
       ))}
     </ul>
   )}
 </div>
+
 
 {/* Champ TO avec suggestions */}
 <div className="relative">
@@ -289,7 +364,7 @@ onClick={() => setUserMenuOpen(!userMenuOpen)}
     className="w-full p-3 pl-10 border-2 border-[#3F6592] rounded-lg"
   />
   {toSuggestions.length > 0 && (
-    <ul className="absolute z-10 bg-white border border-gray-300 rounded mt-1 max-h-40 overflow-y-auto w-full">
+    <ul className="absolute z-50 bg-white border border-gray-300 rounded-lg mt-2 shadow-lg max-h-60 overflow-y-auto w-full animate-fade-in">
       {toSuggestions.map((a, i) => (
         <li
           key={i}
@@ -297,14 +372,23 @@ onClick={() => setUserMenuOpen(!userMenuOpen)}
             setTo(a.code);
             setToSuggestions([]);
           }}
-          className="px-4 py-2 hover:bg-[#3F6592] hover:text-white cursor-pointer"
+          className="px-4 py-2 hover:bg-[#3F6592] hover:text-white transition-all duration-200 cursor-pointer flex items-center gap-3"
         >
-          {a.name} ({a.code})
+          <img
+            src={`https://flagcdn.com/32x24/${a.countryCode.toLowerCase()}.png`}
+            alt={a.countryCode}
+            className="w-6 h-4 object-contain rounded-sm shadow-sm border"
+          />
+          <div className="text-sm">
+            <div className="font-semibold">{a.name}</div>
+            <div className="text-xs text-gray-500">({a.code})</div>
+          </div>
         </li>
       ))}
     </ul>
   )}
 </div>
+
 
             <div className="relative">
               <FaCalendarAlt className="absolute top-3 left-3 text-gray-400" />
@@ -318,12 +402,16 @@ onClick={() => setUserMenuOpen(!userMenuOpen)}
           </div>
 
           <div className="flex justify-center">
-            <button
-              onClick={handleSearch}
-              className="bg-[#0EC953] hover:bg-green-600 text-white font-semibold py-3 px-8 rounded-full"
-            >
-              Rechercher
-            </button>
+          <button
+  onClick={handleSearch}
+  disabled={!from || !to || !date}
+  className={`bg-[#0EC953] hover:bg-green-600 text-white font-semibold py-3 px-8 rounded-full ${
+    !from || !to || !date ? "opacity-50 cursor-not-allowed" : ""
+  }`}
+>
+  Rechercher
+</button>
+
           </div>
           {loading && (
   <div className="flex justify-center items-center my-10">
@@ -368,10 +456,26 @@ onClick={() => setUserMenuOpen(!userMenuOpen)}
               return (
                 <td key={date} className="py-3 px-4 text-center">
                   {flight ? (
-                    <div className="flex flex-col items-center justify-center">
+                    <div
+  className="flex flex-col items-center justify-center cursor-pointer hover:scale-105 transition"
+  onClick={() =>
+    setSelectedFlight({
+      airline,
+      flightNumber: flight.flightNumber,
+      from,
+      to,
+      tarif: freightRatesPerKg[airline],
+      segments: flight.segments
+    })
+  }
+  
+  >
                       <span className="font-semibold text-black text-sm mb-1">
-                        {flight.price.toFixed(2)} €
-                      </span>
+  {freightRatesPerKg[airline]
+    ? `${freightRatesPerKg[airline].toFixed(2)} €/kg`
+    : "N/A"}
+</span>
+
                       <div className="flex gap-1 flex-wrap justify-center">
                         {tagList.map(tag => (
                           <span
@@ -398,11 +502,16 @@ onClick={() => setUserMenuOpen(!userMenuOpen)}
         ))}
       </tbody>
     </table>
+    <FlightDetailsModal flight={selectedFlight} onClose={() => setSelectedFlight(null)} />
+
   </div>
 )}
 
 
         </div>
+
+
+
       </main>
     </div>
   );
