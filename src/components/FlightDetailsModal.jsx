@@ -1,7 +1,11 @@
 // components/FlightDetailsModal.jsx
 import React from "react";
 
+import { useRouter } from "next/navigation";
+
 export default function FlightDetailsModal({ flight, onClose }) {
+  const router = useRouter(); 
+
   if (!flight) return null;
 
   // ✅ 1. Correction ici : backticks nécessaires pour l'URL dynamique
@@ -20,6 +24,51 @@ export default function FlightDetailsModal({ flight, onClose }) {
     const hours = Math.floor(durationMs / (1000 * 60 * 60));
     const minutes = Math.floor((durationMs % (1000 * 60 * 60)) / (1000 * 60));
     return `${hours}h${minutes.toString().padStart(2, "0")}`;
+  };
+
+  const handleReservation = async () => {
+    try {
+      // 1. Sauvegarder la marchandise
+      const marchandiseRes = await fetch("/api/marchandise", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...flight.cargoData,
+          user: flight.userId,
+        }),
+      });
+      const marchandise = await marchandiseRes.json();
+
+      if (!marchandiseRes.ok) throw new Error("Erreur création marchandise");
+
+      // 2. Sauvegarder la réservation
+      const reservationRes = await fetch("/api/reservation", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          user: flight.userId,
+          marchandise: marchandise._id,
+          airline: flight.airline,
+          flightNumber: flight.flightNumber,
+          from: flight.from,
+          to: flight.to,
+          departureDate: segment?.departure?.at,
+          arrivalDate: segment?.arrival?.at,
+          tarif: flight.tarif,
+          totalWeight: flight.totalWeight, // tu dois envoyer totalWeight depuis Reservation page
+          totalPrice: flight.tarif * flight.totalWeight
+        }),
+      });
+      const reservation = await reservationRes.json();
+
+      if (!reservationRes.ok) throw new Error("Erreur création réservation");
+
+      // 3. Redirection
+      router.push(`/Transitaire/Reservation/${reservation._id}`);
+    } catch (error) {
+      console.error(error);
+      alert("Verifiez vos données");
+    }
   };
 
   return (
@@ -80,7 +129,10 @@ export default function FlightDetailsModal({ flight, onClose }) {
 
         {/* Bouton Réservation */}
         <div className="text-center mt-6">
-          <button className="bg-green-600 hover:bg-green-700 text-white font-bold px-6 py-2 rounded-full shadow">
+        <button
+            onClick={handleReservation}
+            className="bg-green-600 hover:bg-green-700 text-white font-bold px-6 py-2 rounded-full shadow"
+          >
             Réserver ce vol
           </button>
         </div>

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import {
   FaUser, FaSearch, FaCalendar, FaBox, FaCog, FaSignOutAlt,
-  FaBars, FaTimes, FaPlus, FaPlane, FaUsers
+  FaBars, FaTimes, FaPlus, FaPlane, FaUsers, FaChevronRight 
 } from "react-icons/fa";
 import Link from "next/link"; 
 import { useRouter } from "next/navigation"; // Importation du router de Next.js
@@ -52,7 +52,8 @@ export default function Sidebar({ onToggle }) {
         {/* Navigation */}
         <nav className="mt-4 flex flex-col space-y-2 px-4">
           <div onClick={() => setUserMenuOpen(!userMenuOpen)}>
-            <SidebarLink icon={<FaUser />} text="Utilisateur" isOpen={isOpen} />
+            <SidebarLink icon={<FaUser />} text="Utilisateur" isOpen={isOpen}  hasSubMenu
+      isSubMenuOpen={userMenuOpen} />
           </div>
 
           {/* Sous-menu utilisateur */}
@@ -64,7 +65,7 @@ export default function Sidebar({ onToggle }) {
           )}
 
           <SidebarLink icon={<FaSearch />} text="Recherche" href="/Transitaire/Reservation" isOpen={isOpen} />
-          <SidebarLink icon={<FaCalendar />} text="Réservation" isOpen={isOpen} />
+          <SidebarLink icon={<FaCalendar />} text="Réservation" href="/Transitaire/Reservation/Liste" isOpen={isOpen} />
           <SidebarLink icon={<FaBox />} text="Stock LTA" isOpen={isOpen} />
           <SidebarLink icon={<FaCog />} text="Paramètres" isOpen={isOpen} />
         </nav>
@@ -78,14 +79,23 @@ export default function Sidebar({ onToggle }) {
   );
 }
 
-function SidebarLink({ icon, text, isOpen, onClick, href }) {
+function SidebarLink({ icon, text, isOpen, onClick, href, hasSubMenu = false, isSubMenuOpen = false  }) {
   const content = (
     <div
       className="flex items-center space-x-3 hover:bg-white/10 p-3 rounded-lg cursor-pointer transition-all"
       onClick={onClick}
     >
-      {icon}
-      {isOpen && <span>{text}</span>}
+           <div className="flex items-center space-x-3">
+        {icon}
+        {isOpen && <span>{text}</span>}
+      </div>
+      {isOpen && hasSubMenu && (
+        <span className={`transform transition-transform duration-300 ${isSubMenuOpen ? "rotate-90" : ""}`}>
+         <FaChevronRight
+              className={`transform transition-transform duration-300 ${isSubMenuOpen ? "rotate-90" : ""}`}
+            />
+        </span>
+      )}
     </div>
   );
 

@@ -23,6 +23,23 @@ export default function Reservation() {
   const [fromSuggestions, setFromSuggestions] = useState([]);
   const [toSuggestions, setToSuggestions] = useState([]);
   const [selectedFlight, setSelectedFlight] = useState(null);
+  const [cargoData, setCargoData] = useState({
+    pieces: 1,
+    dimensions: [{ longueur: "", largeur: "", hauteur: "" }],
+    poids: "",
+    poidsParPiece: true,
+    stackable: false,
+    turnable: false,
+    temperature: "Non requis",
+    suiviTemperature: false,
+    conteneurActif: false,
+    typeMarchandise: "Normale",
+    lithiumBattery: false,
+    diplomatique: false,
+    express: false,
+    screened: false
+  });
+  
 
   const airlineNames = {
     BJ: "Nouvelair",
@@ -400,6 +417,193 @@ onClick={() => setUserMenuOpen(!userMenuOpen)}
               />
             </div>
           </div>
+          {loading && (
+  <div className="flex justify-center items-center my-10">
+    <div className="animate-spin rounded-full h-10 w-10 border-t-4 border-[#3F6592] border-opacity-75"></div>
+    <span className="ml-3 text-[#3F6592] font-medium">Chargement des vols...</span>
+  </div>
+)}
+          {/* Formulaire Marchandise */}
+<div className="bg-gray-100 rounded-2xl p-6 mt-10 mb-10 shadow-md">
+  <h3 className="text-lg font-bold text-[#3F6592] mb-4">📦 Détails de la Marchandise</h3>
+
+  <div className="grid md:grid-cols-2 gap-4">
+    <div>
+      <label className="block mb-1 font-semibold">Nombre de pièces</label>
+      <input
+        type="number"
+        value={cargoData.pieces}
+        onChange={(e) => setCargoData({ ...cargoData, pieces: parseInt(e.target.value), dimensions: Array.from({ length: parseInt(e.target.value) }, () => ({ longueur: "", largeur: "", hauteur: "" })) })}
+        className="w-full p-2 border rounded-lg"
+        min="1"
+      />
+    </div>
+
+    <div>
+      <label className="block mb-1 font-semibold">Poids (kg)</label>
+      <input
+        type="number"
+        value={cargoData.poids}
+        onChange={(e) => setCargoData({ ...cargoData, poids: e.target.value })}
+        className="w-full p-2 border rounded-lg"
+      />
+      <div className="flex items-center gap-2 mt-2">
+        <input
+          type="checkbox"
+          checked={cargoData.poidsParPiece}
+          onChange={(e) => setCargoData({ ...cargoData, poidsParPiece: e.target.checked })}
+        />
+        <label>Poids par pièce</label>
+      </div>
+    </div>
+  </div>
+
+  {/* Dimensions */}
+  <div className="mt-4 space-y-2">
+    {cargoData.dimensions.map((dim, idx) => (
+      <div key={idx} className="grid grid-cols-3 gap-3">
+        <input
+          type="number"
+          placeholder="Longueur (cm)"
+          value={dim.longueur}
+          onChange={(e) => {
+            const updated = [...cargoData.dimensions];
+            updated[idx].longueur = e.target.value;
+            setCargoData({ ...cargoData, dimensions: updated });
+          }}
+          className="p-2 border rounded-lg"
+        />
+        <input
+          type="number"
+          placeholder="Largeur (cm)"
+          value={dim.largeur}
+          onChange={(e) => {
+            const updated = [...cargoData.dimensions];
+            updated[idx].largeur = e.target.value;
+            setCargoData({ ...cargoData, dimensions: updated });
+          }}
+          className="p-2 border rounded-lg"
+        />
+        <input
+          type="number"
+          placeholder="Hauteur (cm)"
+          value={dim.hauteur}
+          onChange={(e) => {
+            const updated = [...cargoData.dimensions];
+            updated[idx].hauteur = e.target.value;
+            setCargoData({ ...cargoData, dimensions: updated });
+          }}
+          className="p-2 border rounded-lg"
+        />
+      </div>
+    ))}
+  </div>
+
+  {/* Autres options */}
+  <div className="mt-6 grid md:grid-cols-2 gap-4">
+    <div className="flex items-center gap-2">
+      <input
+        type="checkbox"
+        checked={cargoData.stackable}
+        onChange={(e) => setCargoData({ ...cargoData, stackable: e.target.checked })}
+      />
+      <label>Empilable (Stackable)</label>
+    </div>
+
+    <div className="flex items-center gap-2">
+      <input
+        type="checkbox"
+        checked={cargoData.turnable}
+        onChange={(e) => setCargoData({ ...cargoData, turnable: e.target.checked })}
+      />
+      <label>Retournable (Turnable)</label>
+    </div>
+
+    <div>
+      <label className="block mb-1 font-semibold">Exigence de température</label>
+      <select
+        value={cargoData.temperature}
+        onChange={(e) => setCargoData({ ...cargoData, temperature: e.target.value })}
+        className="w-full p-2 border rounded-lg"
+      >
+        <option>Non requis</option>
+        <option>-10°C à -20°C</option>
+        <option>2°C à 8°C</option>
+        <option>2°C à 25°C</option>
+        <option>15°C à 25°C</option>
+      </select>
+    </div>
+
+    <div className="flex items-center gap-2">
+      <input
+        type="checkbox"
+        checked={cargoData.suiviTemperature}
+        onChange={(e) => setCargoData({ ...cargoData, suiviTemperature: e.target.checked })}
+      />
+      <label>Suivi température</label>
+    </div>
+
+    <div className="flex items-center gap-2">
+      <input
+        type="checkbox"
+        checked={cargoData.conteneurActif}
+        onChange={(e) => setCargoData({ ...cargoData, conteneurActif: e.target.checked })}
+      />
+      <label>Conteneur actif</label>
+    </div>
+
+    <div>
+      <label className="block mb-1 font-semibold">Type Marchandise</label>
+      <select
+        value={cargoData.typeMarchandise}
+        onChange={(e) => setCargoData({ ...cargoData, typeMarchandise: e.target.value })}
+        className="w-full p-2 border rounded-lg"
+      >
+        <option>Normale</option>
+        <option>Marchandise dangereuse</option>
+      </select>
+    </div>
+
+    <div className="flex items-center gap-2">
+      <input
+        type="checkbox"
+        checked={cargoData.lithiumBattery}
+        onChange={(e) => setCargoData({ ...cargoData, lithiumBattery: e.target.checked })}
+      />
+      <label>Contient batterie lithium</label>
+    </div>
+
+    <div className="flex flex-wrap gap-4">
+      <div className="flex items-center gap-2">
+        <input
+          type="checkbox"
+          checked={cargoData.screened}
+          onChange={(e) => setCargoData({ ...cargoData, screened: e.target.checked })}
+        />
+        <label>Screened</label>
+      </div>
+
+      <div className="flex items-center gap-2">
+        <input
+          type="checkbox"
+          checked={cargoData.diplomatique}
+          onChange={(e) => setCargoData({ ...cargoData, diplomatique: e.target.checked })}
+        />
+        <label>Diplomatique</label>
+      </div>
+
+      <div className="flex items-center gap-2">
+        <input
+          type="checkbox"
+          checked={cargoData.express}
+          onChange={(e) => setCargoData({ ...cargoData, express: e.target.checked })}
+        />
+        <label>Express</label>
+      </div>
+    </div>
+  </div>
+</div>
+
 
           <div className="flex justify-center">
           <button
@@ -413,12 +617,7 @@ onClick={() => setUserMenuOpen(!userMenuOpen)}
 </button>
 
           </div>
-          {loading && (
-  <div className="flex justify-center items-center my-10">
-    <div className="animate-spin rounded-full h-10 w-10 border-t-4 border-[#3F6592] border-opacity-75"></div>
-    <span className="ml-3 text-[#3F6592] font-medium">Chargement des vols...</span>
-  </div>
-)}
+       
 
           {message && <p className="text-red-500 mt-5">{message}</p>}
           {results?.grouped && (
@@ -465,7 +664,13 @@ onClick={() => setUserMenuOpen(!userMenuOpen)}
       from,
       to,
       tarif: freightRatesPerKg[airline],
-      segments: flight.segments
+      segments: flight.segments,
+      cargoData, 
+      userId: user?._id, 
+      totalWeight: cargoData.poidsParPiece
+      ? cargoData.pieces * parseFloat(cargoData.poids)
+      : parseFloat(cargoData.poids),
+            cargoData: cargoData           
     })
   }
   
