@@ -1,31 +1,32 @@
 import mongoose from "mongoose";
 
-const MarchandiseSchema = new mongoose.Schema({
-  pieces: { type: Number, required: true },
-  poids: { type: Number, required: true },
-  dimensions: [{
-    longueur: { type: Number, required: true },
-    largeur: { type: Number, required: true },
-    hauteur: { type: Number, required: true },
-  }],
+const ItemSchema = new mongoose.Schema({
+  quantite: { type: Number, required: false },
+  type: { type: String, enum: ["Colis", "Palette"], default: "Colis" },
+  longueur: { type: Number },
+  largeur: { type: Number },
+  hauteur: { type: Number },
+  poids: { type: Number },
+  hsCode: { type: String },
   stackable: { type: Boolean, default: false },
-  turnable: { type: Boolean, default: false },
-  temperature: { type: String, default: "Non requis" },
-  suiviTemperature: { type: Boolean, default: false },
-  conteneurActif: { type: Boolean, default: false },
-  typeMarchandise: { type: String, default: "Normale" },
-  lithiumBattery: { type: Boolean, default: false },
-  diplomatique: { type: Boolean, default: false },
-  express: { type: Boolean, default: false },
-  screened: { type: Boolean, default: false },
+  nature: { type: String, enum: ["chimique", "organique", "electronique"] },
+  dangerous: { type: Boolean, default: false },
+  tempMin: { type: Number },             // uniquement si Température contrôlée
+  tempMax: { type: Number },
+  humidityRange: { type: String },
+  aircraftType: { type: String }         // uniquement si Cargo Aircraft
+});
 
-  //  Ajout obligatoire pour relier au Transitaire
-  user: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "User",
-    required: true
+const MarchandiseSchema = new mongoose.Schema({
+  user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+  pieces: { type: Number, required: true },
+  items: [ItemSchema],
+  shipmentMode: {
+    type: String,
+    enum: ["Standard", "Température contrôlée", "Cargo Aircraft"],
+    default: "Standard"
   },
-
+  notes: { type: String }
 }, { timestamps: true });
 
 export default mongoose.models.Marchandise || mongoose.model("Marchandise", MarchandiseSchema);

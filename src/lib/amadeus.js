@@ -1,7 +1,7 @@
 import axios from "axios";
 
-const AMADEUS_API_KEY = "gP0SxTCAqANReeJZd2OW8NmFXt3Cgyqv"; // remplace avec ta vraie clé
-const AMADEUS_API_SECRET = "i7xSNgTVJuwD69QG";
+const AMADEUS_API_KEY = "RojDNaXoeQ8QjOpKBGOxAJtYvEuyg7SA"; // remplace avec ta vraie clé
+const AMADEUS_API_SECRET = "nnuPANAmIAxAfojc";
 
 export async function getAccessToken() {
   const url = "https://test.api.amadeus.com/v1/security/oauth2/token";

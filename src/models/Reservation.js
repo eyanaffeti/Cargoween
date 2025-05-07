@@ -10,9 +10,9 @@ const reservationSchema = new mongoose.Schema({
   departureDate: { type: Date, required: true },
   arrivalDate: { type: Date, required: true },
   tarif: { type: Number, required: true },
-  totalWeight: { type: Number, required: true }, // kg taxable
-  totalPrice: { type: Number, required: true }, // tarif * poids taxable
-  awb: { type: String, default: "" }, // N° AWB si rempli après
+  totalWeight: { type: Number, required: true },
+  totalPrice: { type: Number, required: true },
+  awb: { type: String, default: "" },
   etat: {
     type: String,
     enum: ["En attente", "Acceptée", "Annulée"],

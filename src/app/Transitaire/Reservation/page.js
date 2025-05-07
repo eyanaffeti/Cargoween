@@ -23,24 +23,38 @@ export default function Reservation() {
   const [fromSuggestions, setFromSuggestions] = useState([]);
   const [toSuggestions, setToSuggestions] = useState([]);
   const [selectedFlight, setSelectedFlight] = useState(null);
+  
   const [cargoData, setCargoData] = useState({
     pieces: 1,
-    dimensions: [{ longueur: "", largeur: "", hauteur: "" }],
-    poids: "",
-    poidsParPiece: true,
-    stackable: false,
-    turnable: false,
-    temperature: "Non requis",
-    suiviTemperature: false,
-    conteneurActif: false,
-    typeMarchandise: "Normale",
-    lithiumBattery: false,
-    diplomatique: false,
-    express: false,
-    screened: false
+    items: [
+      {
+        quantite: "",
+        type: "Colis",
+        longueur: "",
+        largeur: "",
+        hauteur: "",
+        poids: "",
+        hsCode: "",
+        stackable: false,
+        nature: "",
+        dangerous: false,
+        tempMin: "",         // à utiliser seulement si Température contrôlée
+        tempMax: "",
+        humidityRange: "",
+        aircraftType: ""     // à utiliser seulement si Cargo Aircraft
+      }
+    ],
+    notes: ""
   });
   
+  
+  const [shipmentMode, setShipmentMode] = useState("Standard");
 
+  const poidsTotal = cargoData.items.reduce((acc, item) => {
+    const poids = parseFloat(item.poids) || 0;
+    const qte = parseInt(item.quantite) || 1;
+    return acc + (poids * qte);
+  }, 0);
   const airlineNames = {
     BJ: "Nouvelair",
     AZ: "ITA Airways",
@@ -218,7 +232,7 @@ export default function Reservation() {
         grouped[airline][flightDate] = {
           price,
           flightNumber,
-          segments, // 👈 on ajoute les segments ici
+          segments, 
         };
               });
       
@@ -417,15 +431,25 @@ onClick={() => setUserMenuOpen(!userMenuOpen)}
               />
             </div>
           </div>
-          {loading && (
-  <div className="flex justify-center items-center my-10">
-    <div className="animate-spin rounded-full h-10 w-10 border-t-4 border-[#3F6592] border-opacity-75"></div>
-    <span className="ml-3 text-[#3F6592] font-medium">Chargement des vols...</span>
-  </div>
-)}
+
+
           {/* Formulaire Marchandise */}
 <div className="bg-gray-100 rounded-2xl p-6 mt-10 mb-10 shadow-md">
   <h3 className="text-lg font-bold text-[#3F6592] mb-4">📦 Détails de la Marchandise</h3>
+  <div className="flex gap-3 mb-6">
+  {["Standard", "Température contrôlée", "Cargo Aircraft"].map((mode) => (
+    <button
+      key={mode}
+      onClick={() => setShipmentMode(mode)}
+      className={`px-4 py-2 rounded-full border font-medium ${
+        shipmentMode === mode ? "bg-[#3F6592] text-white" : "bg-white text-[#3F6592]"
+      }`}
+    >
+      {mode}
+    </button>
+  ))}
+</div>
+
 
   <div className="grid md:grid-cols-2 gap-4">
     <div>
@@ -433,177 +457,291 @@ onClick={() => setUserMenuOpen(!userMenuOpen)}
       <input
         type="number"
         value={cargoData.pieces}
-        onChange={(e) => setCargoData({ ...cargoData, pieces: parseInt(e.target.value), dimensions: Array.from({ length: parseInt(e.target.value) }, () => ({ longueur: "", largeur: "", hauteur: "" })) })}
-        className="w-full p-2 border rounded-lg"
+        onChange={(e) => {
+          const count = parseInt(e.target.value);
+          setCargoData({
+            ...cargoData,
+            pieces: count,
+            items: Array.from({ length: count }, () => ({
+              type: "Colis",
+              longueur: "",
+              largeur: "",
+              hauteur: "",
+              poids: "",
+              hsCode: ""
+            }))
+          });
+        }}
+                className="w-full p-2 border rounded-lg"
         min="1"
       />
     </div>
 
-    <div>
-      <label className="block mb-1 font-semibold">Poids (kg)</label>
-      <input
-        type="number"
-        value={cargoData.poids}
-        onChange={(e) => setCargoData({ ...cargoData, poids: e.target.value })}
-        className="w-full p-2 border rounded-lg"
-      />
-      <div className="flex items-center gap-2 mt-2">
-        <input
-          type="checkbox"
-          checked={cargoData.poidsParPiece}
-          onChange={(e) => setCargoData({ ...cargoData, poidsParPiece: e.target.checked })}
-        />
-        <label>Poids par pièce</label>
-      </div>
-    </div>
+   
   </div>
 
   {/* Dimensions */}
   <div className="mt-4 space-y-2">
-    {cargoData.dimensions.map((dim, idx) => (
-      <div key={idx} className="grid grid-cols-3 gap-3">
-        <input
-          type="number"
-          placeholder="Longueur (cm)"
-          value={dim.longueur}
-          onChange={(e) => {
-            const updated = [...cargoData.dimensions];
-            updated[idx].longueur = e.target.value;
-            setCargoData({ ...cargoData, dimensions: updated });
-          }}
-          className="p-2 border rounded-lg"
-        />
-        <input
-          type="number"
-          placeholder="Largeur (cm)"
-          value={dim.largeur}
-          onChange={(e) => {
-            const updated = [...cargoData.dimensions];
-            updated[idx].largeur = e.target.value;
-            setCargoData({ ...cargoData, dimensions: updated });
-          }}
-          className="p-2 border rounded-lg"
-        />
-        <input
-          type="number"
-          placeholder="Hauteur (cm)"
-          value={dim.hauteur}
-          onChange={(e) => {
-            const updated = [...cargoData.dimensions];
-            updated[idx].hauteur = e.target.value;
-            setCargoData({ ...cargoData, dimensions: updated });
-          }}
-          className="p-2 border rounded-lg"
-        />
-      </div>
-    ))}
-  </div>
+  {cargoData.items.map((item, index) => (
+  <div key={index} className="border p-4 rounded-lg bg-white shadow-sm mb-4">
+    <h4 className="font-bold text-[#3F6592] mb-4">📦 Pièce {index + 1}</h4>
 
-  {/* Autres options */}
-  <div className="mt-6 grid md:grid-cols-2 gap-4">
-    <div className="flex items-center gap-2">
+    <div className="grid md:grid-cols-6 gap-4">
+      {/* Quantité */}
       <input
-        type="checkbox"
-        checked={cargoData.stackable}
-        onChange={(e) => setCargoData({ ...cargoData, stackable: e.target.checked })}
+        type="number"
+        placeholder="Quantité"
+        value={item.quantite || ""}
+        onChange={(e) => {
+          const updated = [...cargoData.items];
+          updated[index].quantite = e.target.value;
+          setCargoData({ ...cargoData, items: updated });
+        }}
+        className="p-2 border rounded-lg col-span-1"
       />
-      <label>Empilable (Stackable)</label>
+
+      {/* Type Colis/Palette */}
+      <div className="flex flex-col col-span-1">
+        <label className="text-sm font-medium mb-1">Type</label>
+        <div className="flex gap-2">
+          <label className="flex items-center gap-1">
+            <input type="radio" name={`type-${index}`} checked={item.type === "Colis"}
+              onChange={() => {
+                const updated = [...cargoData.items];
+                updated[index].type = "Colis";
+                setCargoData({ ...cargoData, items: updated });
+              }} /> Colis
+          </label>
+          <label className="flex items-center gap-1">
+            <input type="radio" name={`type-${index}`} checked={item.type === "Palette"}
+              onChange={() => {
+                const updated = [...cargoData.items];
+                updated[index].type = "Palette";
+                setCargoData({ ...cargoData, items: updated });
+              }} /> Palette
+          </label>
+        </div>
+      </div>
+      <input
+  type="text"
+  placeholder="HS Code"
+  value={item.hsCode || ""}
+  onChange={(e) => {
+    const updated = [...cargoData.items];
+    updated[index].hsCode = e.target.value;
+    setCargoData({ ...cargoData, items: updated });
+  }}
+  className="p-2 border rounded-lg col-span-1"
+/>
+
+      {/* Dimensions */}
+      <input type="number" placeholder="Longueur" value={item.longueur || ""} onChange={(e) => {
+        const updated = [...cargoData.items];
+        updated[index].longueur = e.target.value;
+        setCargoData({ ...cargoData, items: updated });
+      }} className="p-2 border rounded-lg col-span-1" />
+
+      <input type="number" placeholder="Largeur" value={item.largeur || ""} onChange={(e) => {
+        const updated = [...cargoData.items];
+        updated[index].largeur = e.target.value;
+        setCargoData({ ...cargoData, items: updated });
+      }} className="p-2 border rounded-lg col-span-1" />
+
+      <input type="number" placeholder="Hauteur" value={item.hauteur || ""} onChange={(e) => {
+        const updated = [...cargoData.items];
+        updated[index].hauteur = e.target.value;
+        setCargoData({ ...cargoData, items: updated });
+      }} className="p-2 border rounded-lg col-span-1" />
+
+      <input type="number" placeholder="Poids" value={item.poids || ""} onChange={(e) => {
+        const updated = [...cargoData.items];
+        updated[index].poids = e.target.value;
+        setCargoData({ ...cargoData, items: updated });
+      }} className="p-2 border rounded-lg col-span-1" />
     </div>
 
-    <div className="flex items-center gap-2">
+    <div className="grid md:grid-cols-3 gap-4 mt-4">
+      {/* Gerbable */}
+      <div className="flex gap-4 items-center">
+        <label className="flex items-center gap-1">
+          <input
+            type="radio"
+            name={`stackable-${index}`}
+            checked={item.stackable === true}
+            onChange={() => {
+              const updated = [...cargoData.items];
+              updated[index].stackable = true;
+              setCargoData({ ...cargoData, items: updated });
+            }}
+          /> Gerbable
+        </label>
+        <label className="flex items-center gap-1">
+          <input
+            type="radio"
+            name={`stackable-${index}`}
+            checked={item.stackable === false}
+            onChange={() => {
+              const updated = [...cargoData.items];
+              updated[index].stackable = false;
+              setCargoData({ ...cargoData, items: updated });
+            }}
+          /> Non gerbable
+        </label>
+      </div>
+
+      {/* Nature */}
+      <div>
+        <label className="block mb-1 font-medium">Nature de la marchandise</label>
+        <select
+          className="w-full p-2 border rounded-lg"
+          value={item.nature || ""}
+          onChange={(e) => {
+            const updated = [...cargoData.items];
+            updated[index].nature = e.target.value;
+            setCargoData({ ...cargoData, items: updated });
+          }}
+        >
+          <option value="">Sélectionner</option>
+          <option value="chimique">Chimique</option>
+          <option value="organique">Organique</option>
+          <option value="electronique">Électronique</option>
+        </select>
+      </div>
+
+      {/* Dangerosité */}
+      <div className="flex gap-4 items-center">
+        <label className="flex items-center gap-1">
+          <input
+            type="radio"
+            name={`danger-${index}`}
+            checked={item.dangerous === true}
+            onChange={() => {
+              const updated = [...cargoData.items];
+              updated[index].dangerous = true;
+              setCargoData({ ...cargoData, items: updated });
+            }}
+          /> Dangereux
+        </label>
+        <label className="flex items-center gap-1">
+          <input
+            type="radio"
+            name={`danger-${index}`}
+            checked={item.dangerous === false}
+            onChange={() => {
+              const updated = [...cargoData.items];
+              updated[index].dangerous = false;
+              setCargoData({ ...cargoData, items: updated });
+            }}
+          /> Non dangereux
+        </label>
+      </div>
+      
+    </div>
+
+    {/* Extra : Température (si Température contrôlée) */}
+    {shipmentMode === "Température contrôlée" && (
+  <div className="grid md:grid-cols-3 gap-4 mt-4 items-center">
+    <div>
+      <label className="block font-medium">Température min (°C)</label>
       <input
-        type="checkbox"
-        checked={cargoData.turnable}
-        onChange={(e) => setCargoData({ ...cargoData, turnable: e.target.checked })}
+        type="range"
+        min="-30"
+        max="30"
+        value={item.tempMin || 0}
+        onChange={(e) => {
+          const updated = [...cargoData.items];
+          updated[index].tempMin = e.target.value;
+          setCargoData({ ...cargoData, items: updated });
+        }}
+        className="w-full"
       />
-      <label>Retournable (Turnable)</label>
+      <div className="text-center font-semibold">{item.tempMin || 0}°C</div>
     </div>
 
     <div>
-      <label className="block mb-1 font-semibold">Exigence de température</label>
-      <select
-        value={cargoData.temperature}
-        onChange={(e) => setCargoData({ ...cargoData, temperature: e.target.value })}
-        className="w-full p-2 border rounded-lg"
-      >
-        <option>Non requis</option>
-        <option>-10°C à -20°C</option>
-        <option>2°C à 8°C</option>
-        <option>2°C à 25°C</option>
-        <option>15°C à 25°C</option>
-      </select>
-    </div>
-
-    <div className="flex items-center gap-2">
+      <label className="block font-medium">Température max (°C)</label>
       <input
-        type="checkbox"
-        checked={cargoData.suiviTemperature}
-        onChange={(e) => setCargoData({ ...cargoData, suiviTemperature: e.target.checked })}
+        type="range"
+        min="-30"
+        max="30"
+        value={item.tempMax || 0}
+        onChange={(e) => {
+          const updated = [...cargoData.items];
+          updated[index].tempMax = e.target.value;
+          setCargoData({ ...cargoData, items: updated });
+        }}
+        className="w-full"
       />
-      <label>Suivi température</label>
-    </div>
-
-    <div className="flex items-center gap-2">
-      <input
-        type="checkbox"
-        checked={cargoData.conteneurActif}
-        onChange={(e) => setCargoData({ ...cargoData, conteneurActif: e.target.checked })}
-      />
-      <label>Conteneur actif</label>
+      <div className="text-center font-semibold">{item.tempMax || 0}°C</div>
     </div>
 
     <div>
-      <label className="block mb-1 font-semibold">Type Marchandise</label>
+      <label className="block font-medium">Plage d’humidité</label>
       <select
-        value={cargoData.typeMarchandise}
-        onChange={(e) => setCargoData({ ...cargoData, typeMarchandise: e.target.value })}
-        className="w-full p-2 border rounded-lg"
+        className="p-2 border rounded-lg w-full"
+        value={item.humidityRange || ""}
+        onChange={(e) => {
+          const updated = [...cargoData.items];
+          updated[index].humidityRange = e.target.value;
+          setCargoData({ ...cargoData, items: updated });
+        }}
       >
-        <option>Normale</option>
-        <option>Marchandise dangereuse</option>
+        <option value="">Choisir...</option>
+        <option>-20° à -10°</option>
+        <option>2° à 8°</option>
+        <option>10° à 25°</option>
       </select>
     </div>
-
-    <div className="flex items-center gap-2">
-      <input
-        type="checkbox"
-        checked={cargoData.lithiumBattery}
-        onChange={(e) => setCargoData({ ...cargoData, lithiumBattery: e.target.checked })}
-      />
-      <label>Contient batterie lithium</label>
-    </div>
-
-    <div className="flex flex-wrap gap-4">
-      <div className="flex items-center gap-2">
-        <input
-          type="checkbox"
-          checked={cargoData.screened}
-          onChange={(e) => setCargoData({ ...cargoData, screened: e.target.checked })}
-        />
-        <label>Screened</label>
-      </div>
-
-      <div className="flex items-center gap-2">
-        <input
-          type="checkbox"
-          checked={cargoData.diplomatique}
-          onChange={(e) => setCargoData({ ...cargoData, diplomatique: e.target.checked })}
-        />
-        <label>Diplomatique</label>
-      </div>
-
-      <div className="flex items-center gap-2">
-        <input
-          type="checkbox"
-          checked={cargoData.express}
-          onChange={(e) => setCargoData({ ...cargoData, express: e.target.checked })}
-        />
-        <label>Express</label>
-      </div>
-    </div>
   </div>
+)}
+
+
+    {/* Extra : Avion (si Cargo Aircraft) */}
+    {shipmentMode === "Cargo Aircraft" && (
+      <div className="mt-4">
+        <label className="block mb-1">Type d’avion requis</label>
+        <select
+          className="w-full p-2 border rounded-lg"
+          value={item.aircraftType || ""}
+          onChange={(e) => {
+            const updated = [...cargoData.items];
+            updated[index].aircraftType = e.target.value;
+            setCargoData({ ...cargoData, items: updated });
+          }}
+        >
+          <option value="">Sélectionner un avion</option>
+          <option>AIRBUS A300 B4F</option>
+          <option>Boeing 747-8F</option>
+          <option>Boeing 777F</option>
+          <option>McDonnell Douglas MD-11F</option>
+        </select>
+      </div>
+    )}
+  </div>
+))}
+<div className="mt-8">
+  <label className="block mb-2 font-semibold text-[#3F6592]">📝 Remarques / Détails supplémentaires</label>
+  <textarea
+    rows="3"
+    className="w-full border p-3 rounded-lg"
+    placeholder="Saisissez ici des détails supplémentaires sur l’envoi..."
+    value={cargoData.notes || ""}
+    onChange={(e) => setCargoData({ ...cargoData, notes: e.target.value })}
+  ></textarea>
 </div>
 
+</div>
+
+
+
+</div>
+
+{loading && (
+  <div className="fixed inset-0 bg-white bg-opacity-80 z-50 flex flex-col justify-center items-center">
+    <img src="/preloader.gif" alt="Chargement..." className="w-54 h-44 mb-4" />
+    <span className="text-[#3F6592] font-semibold text-lg">Chargement des vols...</span>
+  </div>
+)}
 
           <div className="flex justify-center">
           <button
@@ -667,10 +805,8 @@ onClick={() => setUserMenuOpen(!userMenuOpen)}
       segments: flight.segments,
       cargoData, 
       userId: user?._id, 
-      totalWeight: cargoData.poidsParPiece
-      ? cargoData.pieces * parseFloat(cargoData.poids)
-      : parseFloat(cargoData.poids),
-            cargoData: cargoData           
+      totalWeight: poidsTotal,
+      totalPrice: poidsTotal * freightRatesPerKg[airline]       
     })
   }
   
