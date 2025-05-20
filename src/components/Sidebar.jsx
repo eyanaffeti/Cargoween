@@ -66,7 +66,7 @@ export default function Sidebar({ onToggle }) {
 
           <SidebarLink icon={<FaSearch />} text="Recherche" href="/Transitaire/Reservation" isOpen={isOpen} />
           <SidebarLink icon={<FaCalendar />} text="Réservation" href="/Transitaire/Reservation/Liste" isOpen={isOpen} />
-          <SidebarLink icon={<FaBox />} text="Stock LTA" isOpen={isOpen} />
+          <SidebarLink icon={<FaBox />} text="Stock LTA" href="/Transitaire/AWBStock" isOpen={isOpen} />
           <SidebarLink icon={<FaCog />} text="Paramètres" isOpen={isOpen} />
         </nav>
       </div>

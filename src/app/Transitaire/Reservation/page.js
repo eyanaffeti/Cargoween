@@ -12,6 +12,7 @@ export default function Reservation() {
     const [loading, setLoading] = useState(false);
 
   const [sidebarOpen, setSidebarOpen] = useState(true);
+
   const [user, setUser] = useState(null);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [from, setFrom] = useState("");
@@ -155,7 +156,6 @@ export default function Reservation() {
   TU: 1.5,
   EK: 2.7,
   UG: 1.6,
-  // Ajoute les autres compagnies selon ton besoin...
 };
 
   

@@ -13,6 +13,15 @@ const reservationSchema = new mongoose.Schema({
   totalWeight: { type: Number, required: true },
   totalPrice: { type: Number, required: true },
   awb: { type: String, default: "" },
+    awbType: {
+  type: String,
+  enum: ["Paper AWB", "EAP", "EAW"],
+  default: " "
+},
+awbComment: {
+  type: String,
+  default: ""
+},
   etat: {
     type: String,
     enum: ["En attente", "Acceptée", "Annulée"],
