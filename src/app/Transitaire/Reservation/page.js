@@ -4,12 +4,15 @@ import { FaPlaneDeparture, FaPlaneArrival, FaCalendarAlt, FaUser, FaPlane } from
 import Sidebar from "@/components/Sidebar";
 import FlightDetailsModal from "@/components/FlightDetailsModal";
 
+import Toast from "@/components/Toast";
 
 
 
 
 export default function Reservation() {
-    const [loading, setLoading] = useState(false);
+  const [toast, setToast] = useState({ show: false, message: "", type: "success" });
+  
+  const [loading, setLoading] = useState(false);
 
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
@@ -203,11 +206,11 @@ export default function Reservation() {
       }
   
       if (allFlights.length === 0) {
-        setMessage("Aucun vol trouvé pour les 7 jours sélectionnés.");
-        setLoading(false);
-        return;
-      }
-  
+  setToast({ show: true, message: "Aucun vol trouvé pour les 7 jours sélectionnés.", type: "error" });
+  setLoading(false);
+  return;
+}
+
       const grouped = {};
       const tags = {};
       const datesSet = new Set(dates);
@@ -264,9 +267,10 @@ export default function Reservation() {
   
       setResults({ grouped, tags, dates });
     } catch (err) {
-      console.error(err);
-      setMessage("Erreur serveur");
-    }
+  console.error(err);
+  setToast({ show: true, message: "Erreur serveur", type: "error" });
+}
+
   
     setLoading(false);
   };
@@ -454,27 +458,46 @@ onClick={() => setUserMenuOpen(!userMenuOpen)}
   <div className="grid md:grid-cols-2 gap-4">
     <div>
       <label className="block mb-1 font-semibold">Nombre de pièces</label>
-      <input
-        type="number"
-        value={cargoData.pieces}
-        onChange={(e) => {
-          const count = parseInt(e.target.value);
-          setCargoData({
-            ...cargoData,
-            pieces: count,
-            items: Array.from({ length: count }, () => ({
-              type: "Colis",
-              longueur: "",
-              largeur: "",
-              hauteur: "",
-              poids: "",
-              hsCode: ""
-            }))
-          });
-        }}
-                className="w-full p-2 border rounded-lg"
-        min="1"
-      />
+     <input
+  type="number"
+value={cargoData.pieces === "" ? "" : Number(cargoData.pieces)}
+  onChange={(e) => {
+    const value = e.target.value;
+
+    // Autoriser champ vide temporairement
+    if (value === "") {
+      setCargoData({ ...cargoData, pieces: "" });
+      return;
+    }
+
+    const count = parseInt(value);
+    if (!isNaN(count) && count > 0) {
+      setCargoData({
+        ...cargoData,
+        pieces: count,
+        items: Array.from({ length: count }, (_, i) => cargoData.items[i] || {
+          quantite: "",
+          type: "Colis",
+          longueur: "",
+          largeur: "",
+          hauteur: "",
+          poids: "",
+          hsCode: "",
+          stackable: false,
+          nature: "",
+          dangerous: false,
+          tempMin: "",
+          tempMax: "",
+          humidityRange: "",
+          aircraftType: ""
+        })
+      });
+    }
+  }}
+  className="w-full p-2 border rounded-lg"
+  min="1"
+/>
+
     </div>
 
    
@@ -843,7 +866,7 @@ onClick={() => setUserMenuOpen(!userMenuOpen)}
         ))}
       </tbody>
     </table>
-    <FlightDetailsModal flight={selectedFlight} onClose={() => setSelectedFlight(null)} />
+    <FlightDetailsModal flight={selectedFlight} onClose={() => setSelectedFlight(null)}  setToast={setToast} />
 
   </div>
 )}
@@ -854,6 +877,14 @@ onClick={() => setUserMenuOpen(!userMenuOpen)}
 
 
       </main>
+      {toast.show && (
+  <Toast
+    message={toast.message}
+    type={toast.type}
+    onClose={() => setToast({ ...toast, show: false })}
+  />
+)}
+
     </div>
   );
 }

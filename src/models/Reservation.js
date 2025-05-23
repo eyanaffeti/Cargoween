@@ -16,7 +16,7 @@ const reservationSchema = new mongoose.Schema({
     awbType: {
   type: String,
   enum: ["Paper AWB", "EAP", "EAW"],
-  default: " "
+  default: undefined
 },
 awbComment: {
   type: String,

@@ -1,14 +1,15 @@
 // components/FlightDetailsModal.jsx
 import React from "react";
+import { useState, useEffect } from "react";
 
 import { useRouter } from "next/navigation";
-
+import Toast from "./Toast";
 export default function FlightDetailsModal({ flight, onClose }) {
   const router = useRouter(); 
+  const [toast, setToast] = useState({ show: false, message: "", type: "error" });
 
   if (!flight) return null;
 
-  // ✅ 1. Correction ici : backticks nécessaires pour l'URL dynamique
   const airlineLogo = `https://images.kiwi.com/airlines/64/${flight.airline}.png`;
 
   const segment = flight.segments?.[0];
@@ -16,7 +17,6 @@ export default function FlightDetailsModal({ flight, onClose }) {
   const formatTime = (datetime) =>
     new Date(datetime).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
 
-  // ✅ 2. Correction ici : utiliser des backticks pour `calcDuration`
   const calcDuration = (departure, arrival) => {
     const start = new Date(departure);
     const end = new Date(arrival);
@@ -28,6 +28,13 @@ export default function FlightDetailsModal({ flight, onClose }) {
 
   const handleReservation = async () => {
     try {
+      const isValid = flight.cargoData.items.every(item => item.nature && item.nature.trim() !== "");
+
+if (!isValid) {
+  setToast({ show: true, message: " Veuillez renseigner la nature de chaque marchandise.", type: "error" });
+  return;
+}
+
       // 1. Sauvegarder la marchandise
       const marchandiseRes = await fetch("/api/marchandise", {
         method: "POST",
@@ -67,7 +74,7 @@ export default function FlightDetailsModal({ flight, onClose }) {
       router.push(`/Transitaire/Reservation/${reservation._id}`);
     } catch (error) {
       console.error(error);
-      alert("Verifiez vos données");
+      setToast({ show: true, message: "❌ Vérifiez vos données !", type: "error" });
     }
   };
 
@@ -136,6 +143,13 @@ export default function FlightDetailsModal({ flight, onClose }) {
             Réserver ce vol
           </button>
         </div>
+               {toast.show && (
+          <Toast
+            message={toast.message}
+            type={toast.type}
+            onClose={() => setToast({ ...toast, show: false })}
+          />
+        )}
       </div>
     </div>
   );
