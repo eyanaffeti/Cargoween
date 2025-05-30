@@ -3,10 +3,10 @@ import AWBStock from "@/models/Stockawb";
 import mongoose from "mongoose";
 
 export async function DELETE(request, context) {
-  const { params } = context;
-  const { id } = params;
+    await connectToDatabase();
 
-  await connectToDatabase();
+ const { id } = context.params;
+
 
   if (!mongoose.Types.ObjectId.isValid(id)) {
     return new Response(JSON.stringify({ message: "ID invalide." }), { status: 400 });

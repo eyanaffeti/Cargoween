@@ -96,7 +96,31 @@ setComment(data.awbComment || "");
   if (id) fetchReservation();
 }, [id]);
 
+const redirectToKonnect = async () => {
+  const response = await fetch("/api/konnect", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      reservationId: reservation._id,
+      amount: reservation.tarif * reservation.totalWeight + 50 + 30 + 20, // montant total
+      firstName: user.firstname,
+      lastName: user.lastname,
+      email: user.email,
+      phone: user.phone,
+    }),
+  });
 
+  const data = await response.json();
+  
+if (response.ok && data.paymentUrl) {
+  window.location.href = data.paymentUrl;
+} else {
+  console.error("❌ Réponse inattendue de Konnect :", data);
+  setToast({ show: true, type: "error", message: data.message || "Erreur redirection Konnect" });
+}
+
+
+};
   const handleSaveAwb = async () => {
     const res = await fetch(`/api/reservation/${id}/awb`, {
       method: "PATCH",
@@ -108,6 +132,7 @@ setComment(data.awbComment || "");
 
     if (res.ok) {
     setToast({ show: true, message: "✅ Numéro LTA mis à jour avec succès !", type: "success" });
+  await redirectToKonnect(); 
   } else {
     setToast({ show: true, message: "❌ " + (data.message || "Erreur lors de la mise à jour."), type: "error" });
   }
@@ -119,6 +144,7 @@ setComment(data.awbComment || "");
   <img src="/preloader.gif" alt="Chargement..." className="w-54 h-44 mb-4" />
   <span className="text-[#3F6592] font-semibold text-lg">Réservation en cours...</span>
 </div></div>;
+
 
   return (
     <div className="flex">

@@ -3,10 +3,14 @@ import Marchandise from "@/models/Marchandise";
 
 export const dynamic = "force-dynamic";
 
-export async function GET(request, { params }) {
+export async function GET(req) {
+  const url = new URL(req.url);
+  const id = url.pathname.split("/").pop();
+
   await connectToDatabase();
 
-  const { id } = params;
+
+
 
   try {
     const marchandise = await Marchandise.findById(id);

@@ -26,7 +26,13 @@ awbComment: {
     type: String,
     enum: ["En attente", "Acceptée", "Annulée"],
     default: "En attente"
-  }
+  },  status: {
+    type: String,
+    enum: ["Non payé", "Payée", "Échouée"],
+    default: "Non payé"
+  },
+  paymentRef: { type: String, default: null }
+
 }, { timestamps: true });
 
 export default mongoose.models.Reservation || mongoose.model("Reservation", reservationSchema);

@@ -1,11 +1,13 @@
 import { connectToDatabase } from "@/lib/mongodb";
 import Reservation from "@/models/Reservation";
-import Marchandise from "@/models/Marchandise";
-import Transitaire from "@/models/Transitaire"; 
+ 
 
-export async function GET(request, context) {
+export async function GET(req) {
+  const url = new URL(req.url);
+  const id = url.pathname.split("/").pop();
+
   await connectToDatabase();
-  const { id } = context.params; // ✅ corrigé ici
+
 
   try {
     const reservation = await Reservation.findById(id)

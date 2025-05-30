@@ -1,14 +1,15 @@
-// src/app/api/reservation/[id]/awb/route.js
 
 import { connectToDatabase } from "@/lib/mongodb";
 import Reservation from "@/models/Reservation";
 import Stockawb from "@/models/Stockawb";
 
-export const PATCH = async (request, { params }) => {
+export async function PATCH(request) {
   await connectToDatabase();
 
   try {
-    const { id } = params;
+    const url = new URL(request.url);
+    const id = url.pathname.split("/").slice(-2)[0];
+
     const body = await request.json();
     const { awb, comment = "" } = body; // récupérer le commentaire saisi
 
