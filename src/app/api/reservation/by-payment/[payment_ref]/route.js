@@ -1,5 +1,7 @@
 import { connectToDatabase } from "@/lib/mongodb";
 import Reservation from "@/models/Reservation";
+import Marchandise from "@/models/Marchandise";
+
 
 export async function GET(req, context) {
   await connectToDatabase();

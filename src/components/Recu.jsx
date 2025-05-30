@@ -1,6 +1,3 @@
-// components/Recu.jsx
-import React from "react";
-
 export default function Recu({ data }) {
   return (
     <div id="recu" className="p-10 w-[800px] bg-white text-black text-sm leading-6">
@@ -18,7 +15,7 @@ export default function Recu({ data }) {
 
       <div className="grid grid-cols-2 gap-x-8 gap-y-2">
         <p><strong>Nom</strong></p>
-        <p className="font-semibold uppercase">{data.nom}</p>
+        <p className="font-semibold uppercase">{data.user?.firstname} / {data.user?.lastname}</p>
 
         <p><strong>Numéro de vol</strong></p>
         <p className="font-bold">{data.flightNumber}</p>
@@ -29,35 +26,34 @@ export default function Recu({ data }) {
         <p><strong>Aéroport d'arrivée</strong></p>
         <p className="font-bold uppercase">{data.to}</p>
 
-        <p><strong>Mode de Paiement</strong></p>
-        <p className="font-bold uppercase">{data.paymentMethod}</p>
+        <p><strong>Méthode de Paiement</strong></p>
+        <p className="font-bold uppercase"> En ligne</p>
 
-        <p><strong>Tarif</strong></p>
-        <p>{data.tarif} TND</p>
+        <p><strong>Tarif fret/Kg</strong></p>
+        <p>{data.tarif} EUR</p>
 
-        <p><strong>Taxes</strong></p>
-        <p>{data.taxes}</p>
+        <p><strong>Frais LTA</strong></p>
+        <p>50 EUR</p>
+         <p><strong>Frais Scanner</strong></p>
+        <p>30 EUR</p>
 
         <p><strong>Autres frais</strong></p>
-        <p>{data.frais}</p>
+        <p>50 EUR</p>
 
-        <p><strong>Total</strong></p>
-        <p className="font-bold text-lg">{data.total} TND</p>
 
         <p><strong>Nom compagnie aérienne</strong></p>
-        <p>{data.compagnie}</p>
+        <p>{data.airline}</p>
 
-        <p><strong>Transitaire</strong></p>
-        <p>{data.transitaire}</p>
+        <p><strong>Entreprise de transitaire</strong></p>
+        <p>{data.user?.company}</p>
 
         <p><strong>Numéro LTA</strong></p>
         <p>{data.awb}</p>
 
         <p><strong>Restrictions</strong></p>
-        <p>{data.restrictions}</p>
-
-        <p><strong>Calcul tarifaire</strong></p>
-        <p>{data.calculTarif}</p>
+        <p>MODIFICATION ET REMBOURSEMENT AVEC FRAIS AVANT LE VOL</p>
+ <p><strong>Total</strong></p>
+        <p className="font-bold text-lg">{data.totalPrice+ 50 + 30 + 20} EUR</p>
       </div>
 
       <div className="mt-6 border-t pt-2 text-xs text-gray-600">

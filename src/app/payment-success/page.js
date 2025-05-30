@@ -11,16 +11,15 @@ export default function PaymentSuccessPage() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [user, setUser] = useState(null);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
-  const recuRef = useRef();
   const html2pdf = typeof window !== "undefined" ? require("html2pdf.js") : null;
 
 
-  useEffect(() => {
-  if (data && typeof window !== "undefined" && html2pdf) {
-    const element = document.getElementById("recu");
-html2pdf().from(element).save(`reçu-${data.user?.firstname || "de reservation"}-${data._id}.pdf`);
+ useEffect(() => {
+  if (data) {
+    downloadRecu();
   }
 }, [data]);
+
 
 
   useEffect(() => {
@@ -55,10 +54,15 @@ html2pdf().from(element).save(`reçu-${data.user?.firstname || "de reservation"}
       .catch((err) => console.error("Erreur fetch reçu :", err));
   }, []);
 
-  const downloadRecu = () => {
-    const element = document.getElementById("recu");
-    html2pdf().from(element).save(`reçu de reservation-${data.nom}.pdf`);
-  };
+const downloadRecu = () => {
+  if (!data || !data.user) return; // sécurité si data est null
+
+  const element = document.getElementById("recu");
+  if (!element) return;
+
+  const filename = `reçu de réservation - ${data.user.firstname} ${data.user.lastname}.pdf`;
+  html2pdf().from(element).save(filename);
+};
 
  
   return (
