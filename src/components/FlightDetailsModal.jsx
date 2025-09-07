@@ -1,16 +1,20 @@
 // components/FlightDetailsModal.jsx
-import React from "react";
-import { useState, useEffect } from "react";
-
+import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import Toast from "./Toast";
+
 export default function FlightDetailsModal({ flight, onClose }) {
   const router = useRouter(); 
   const [toast, setToast] = useState({ show: false, message: "", type: "error" });
 
   if (!flight) return null;
 
-  const airlineLogo = `https://images.kiwi.com/airlines/64/${flight.airline}.png`;
+  // ✅ Gérer logo, code et nom dynamiquement
+  const airlineCode = typeof flight.airline === "string" ? flight.airline : flight.airline?.code;
+  const airlineName = typeof flight.airline === "string" ? "" : flight.airline?.name;
+  const airlineLogo = typeof flight.airline === "string"
+    ? `https://images.kiwi.com/airlines/64/${flight.airline}.png`
+    : flight.airline?.logo || "/fallback-logo.png";
 
   const segment = flight.segments?.[0];
 
@@ -29,13 +33,12 @@ export default function FlightDetailsModal({ flight, onClose }) {
   const handleReservation = async () => {
     try {
       const isValid = flight.cargoData.items.every(item => item.nature && item.nature.trim() !== "");
+      if (!isValid) {
+        setToast({ show: true, message: "Veuillez renseigner la nature de chaque marchandise.", type: "error" });
+        return;
+      }
 
-if (!isValid) {
-  setToast({ show: true, message: " Veuillez renseigner la nature de chaque marchandise.", type: "error" });
-  return;
-}
-
-      // 1. Sauvegarder la marchandise
+      // 1. Sauvegarder marchandise
       const marchandiseRes = await fetch("/api/marchandise", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -45,32 +48,29 @@ if (!isValid) {
         }),
       });
       const marchandise = await marchandiseRes.json();
-
       if (!marchandiseRes.ok) throw new Error("Erreur création marchandise");
 
-      // 2. Sauvegarder la réservation
+      // 2. Sauvegarder réservation
       const reservationRes = await fetch("/api/reservation", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           user: flight.userId,
           marchandise: marchandise._id,
-          airline: flight.airline,
+          airline: airlineCode, // ✅ toujours le code (BJ, TU, 7A…)
           flightNumber: flight.flightNumber,
           from: flight.from,
           to: flight.to,
           departureDate: segment?.departure?.at,
           arrivalDate: segment?.arrival?.at,
           tarif: flight.tarif,
-          totalWeight: flight.totalWeight, // tu dois envoyer totalWeight depuis Reservation page
+          totalWeight: flight.totalWeight,
           totalPrice: flight.tarif * flight.totalWeight
         }),
       });
       const reservation = await reservationRes.json();
-
       if (!reservationRes.ok) throw new Error("Erreur création réservation");
 
-      // 3. Redirection
       router.push(`/Transitaire/Reservation/${reservation._id}`);
     } catch (error) {
       console.error(error);
@@ -90,23 +90,23 @@ if (!isValid) {
 
         {/* Logo et Nom de la compagnie */}
         <div className="text-center mb-4">
-        <h2 className="text-xl font-bold text-[#1E3A8A] flex items-center justify-center gap-2">
+          <h2 className="text-xl font-bold text-[#1E3A8A] flex items-center justify-center gap-2">
             <span>✈️</span> Détails du vol
           </h2>
           <img
             src={airlineLogo}
-            alt={flight.airline}
+            alt={airlineName || airlineCode}
             className="w-20 h-20 mx-auto mb-2 object-contain"
             onError={(e) => { e.target.onerror = null; e.target.src = "/fallback-logo.png"; }}
           />
           <h3 className="text-xl font-bold text-[#1E3A8A]">
-            {flight.airline} {flight.flightNumber}
+            {airlineCode} – {airlineName} <br></br>{flight.flightNumber}
           </h3>
           <p className="text-sm text-gray-600">{segment?.departure.iataCode} → {segment?.arrival.iataCode}</p>
           <p className="text-green-600 font-semibold text-sm mt-1">Départ à l'heure</p>
         </div>
 
-        {/* Bloc horaire dynamique */}
+        {/* Bloc horaire */}
         <div className="bg-gray-50 rounded-lg p-4 border border-gray-200 space-y-2">
           <div className="flex justify-between items-center">
             <div className="text-center">
@@ -131,19 +131,20 @@ if (!isValid) {
         {/* Détails cargo */}
         <div className="mt-4 text-sm text-gray-700 space-y-1">
           <p>📦 Restrictions : Température ambiante, max 300 kg</p>
-          <p>💰 Tarif Fret : <strong>{flight.tarif?.toFixed(2) || "1.95"} €/kg</strong></p>
+          <p>💰 Tarif Fret : <strong>{flight.tarif ? flight.tarif.toFixed(2) : "N/A"} €/kg</strong></p>
         </div>
 
         {/* Bouton Réservation */}
         <div className="text-center mt-6">
-        <button
+          <button
             onClick={handleReservation}
             className="bg-green-600 hover:bg-green-700 text-white font-bold px-6 py-2 rounded-full shadow"
           >
             Réserver ce vol
           </button>
         </div>
-               {toast.show && (
+
+        {toast.show && (
           <Toast
             message={toast.message}
             type={toast.type}

@@ -1,5 +1,6 @@
 import Reservation from "@/models/Reservation";
 import Marchandise from "@/models/Marchandise"; 
+import Admin from "@/models/Admin"; // ✅ modèle qui contient les infos user (role, etc.)
 
 import { connectToDatabase } from "@/lib/mongodb";
 
@@ -19,16 +20,31 @@ export const GET = async (req) => {
   await connectToDatabase();
   const { searchParams } = new URL(req.url);
   const userId = searchParams.get("userId");
+  const role = searchParams.get("role");
+  const airlineCode = searchParams.get("airlineCode");
 
-  if (!userId) {
-    return new Response(JSON.stringify({ message: "userId manquant" }), { status: 400 });
+  if (!userId || !role) {
+    return new Response(JSON.stringify({ message: "userId ou role manquant" }), { status: 400 });
   }
 
   try {
-    const reservations = await Reservation.find({ user: userId }).populate("marchandise");
-    return new Response(JSON.stringify(reservations), { status: 200 });
+    let filter = {};
+
+    if (role === "transitaire") {
+      // ✅ Comme dans ton ancien code
+      filter.user = userId;
+    } else if (role === "airline" && airlineCode) {
+      // ✅ Filtrer par code compagnie
+      filter.airline = airlineCode;
+    }
+
+const reservations = await Reservation.find(filter)
+      .populate("marchandise")
+      .populate("user", "firstname lastname email phone");    return new Response(JSON.stringify(reservations), { status: 200 });
   } catch (err) {
-    console.error(err);
+    console.error("❌ Erreur serveur GET /api/reservation :", err);
     return new Response(JSON.stringify({ message: "Erreur serveur" }), { status: 500 });
   }
 };
+
+

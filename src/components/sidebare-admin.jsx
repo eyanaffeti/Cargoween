@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { FaUser, FaSearch, FaCalendar, FaBox, FaCog, FaSignOutAlt, FaBars, FaTimes, FaPlus, FaPlane, FaUsers } from "react-icons/fa";
+import { FaUser, FaTachometerAlt, FaCalendar, FaBox, FaCog, FaSignOutAlt, FaBars, FaTimes, FaPlus, FaPlane, FaUsers } from "react-icons/fa";
 import Link from "next/link";
 import { useRouter } from "next/navigation"; // Importation du router de Next.js
 
@@ -46,23 +46,23 @@ export default function Sidebar({ onToggle }) {
 
         {/* Navigation */}
         <nav className="mt-4 flex flex-col space-y-2 px-4">
+                    <SidebarLink icon={<FaTachometerAlt />} text="Tableau de bord" isOpen={isOpen} />
+
           <div onClick={() => setUserMenuOpen(!userMenuOpen)}>
-            <SidebarLink icon={<FaUser />} text="Utilisateur" isOpen={isOpen} />
+            <SidebarLink icon={<FaUser />} text="Utilisateurs" isOpen={isOpen} />
           </div>
 
            {/* Sous-menu utilisateur */}
            {isOpen && userMenuOpen && (
             <div className="ml-8 flex flex-col space-y-2 text-sm">
-              <SidebarSubLink icon={<FaPlus />} text="Ajouter un utilisateur" href="/Administrateur/Transitaires/Ajout" />
+              <SidebarSubLink icon={<FaPlus />} text="Ajouter un Transitaire" href="/Administrateur/Transitaires/Ajout" />
               <SidebarSubLink icon={<FaUsers />} text="Liste des transitaires" href="/Administrateur/Transitaires/Liste" />
               <SidebarSubLink icon={<FaPlus />} text="Ajouter une compagnie aérienne" href="/Administrateur/Compagnies/Ajout" />
               <SidebarSubLink icon={<FaPlane />} text="Liste des compagnies aériennes " href="/Administrateur/Compagnies/Liste" />
             </div>
           )}
 
-          <SidebarLink icon={<FaSearch />} text="Recherche" isOpen={isOpen} />
-          <SidebarLink icon={<FaCalendar />} text="Réservation" isOpen={isOpen} />
-          <SidebarLink icon={<FaBox />} text="Stock LTA" isOpen={isOpen} />
+          <SidebarLink icon={<FaCalendar />} text="Réservations" isOpen={isOpen} />
           <SidebarLink icon={<FaCog />} text="Paramètres" isOpen={isOpen} />
         </nav>
       </div>

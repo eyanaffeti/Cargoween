@@ -15,7 +15,7 @@ export default function Recu({ data }) {
 
       <div className="grid grid-cols-2 gap-x-8 gap-y-2">
         <p><strong>Nom</strong></p>
-        <p className="font-semibold uppercase">{data.user?.firstname} / {data.user?.lastname}</p>
+        <p className="font-semibold uppercase">{data.user?.firstname}  {data.user?.lastname}</p>
 
         <p><strong>Numéro de vol</strong></p>
         <p className="font-bold">{data.flightNumber}</p>

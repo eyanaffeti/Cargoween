@@ -46,7 +46,7 @@ export default function Navbar() {
       </div>
 
       {/* Navigation Links */}
-      <div className="flex justify-center items-center space-x-12 absolute left-[246px] top-[57px]">
+      <div className="flex justify-center items-center space-x-12 absolute left-[346px] top-[57px]">
       <a
           href="#About"
           className={`text-base font-medium transition-all duration-300 ${
@@ -71,14 +71,7 @@ export default function Navbar() {
         >
           Compagnies aériennes
         </a>
-        <a
-          href="#partenaires"
-          className={`text-base font-medium transition-all duration-300 ${
-            isScrolled ? "text-[#121B2D]" : "text-white"
-          } hover:underline`}
-        >
-          Cargo Avion
-        </a>
+       
         <a
           href="#actualites"
           className={`text-base font-medium transition-all duration-300 ${
@@ -102,7 +95,7 @@ export default function Navbar() {
             isScrolled ? "text-[#121B2D]" : "text-white"
           } hover:underline`}
         >
-          Contacter-nous
+          Contactez-nous
         </a>
       </div>
 
@@ -128,7 +121,7 @@ export default function Navbar() {
               : "border-[#0089B6] text-white hover:bg-[#0089B6] hover:text-white"
           }`}
         >
-          EN
+          FR
         </button>
       </div>
     </nav>

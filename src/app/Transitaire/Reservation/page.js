@@ -239,7 +239,38 @@ export default function Reservation() {
         };
               });
       
-  
+  const resOffres = await fetch(`/api/offres?from=${from}&to=${to}&date=${date}`);
+const offresCompagnies = await resOffres.json();
+
+// 🔹 On ajoute les offres compagnies dans le même format que grouped Amadeus
+offresCompagnies.forEach(offre => {
+  const airline = offre.airline?.company || "Compagnie partenaire";
+  if (!grouped[airline]) grouped[airline] = {};
+
+  const offreDate = new Date(offre.departureDate).toISOString().split("T")[0];
+  grouped[airline][offreDate] = {
+  price: offre.tarifKg,
+  flightNumber: offre.flightNumber,
+  segments: [{
+    departure: { iataCode: offre.from, at: offre.departureDate },
+    arrival: { iataCode: offre.to, at: offre.arrivalDate }
+  }],
+  isCompanyOffer: true,
+  airline: {   // 👈 garder l’objet intact
+    code: "7A",
+    name: "Express Air Cargo",
+    logo: "/expresscargo.png"
+  }
+};
+
+  if (!tags[offreDate]) tags[offreDate] = {};
+  tags[offreDate][airline] = [];
+  if (offre.tarifKg <= offresCompagnies.reduce((min, o) => Math.min(min, o.tarifKg), Infinity))
+    tags[offreDate][airline].push("Cheap");
+  if (offre.tarifKg <= (offresCompagnies.reduce((s, o) => s + o.tarifKg, 0) / offresCompagnies.length))
+    tags[offreDate][airline].push("Best");
+});
+
       dates.forEach((date) => {
         let cheapestPrice = Infinity;
         let bestPrice = Infinity;
@@ -797,18 +828,26 @@ value={cargoData.pieces === "" ? "" : Number(cargoData.pieces)}
       <tbody>
         {filteredAirlines.map(([airline, flights], idx) => (
           <tr key={airline} className={`${idx % 2 === 0 ? "bg-gray-100" : "bg-white"} border-b`}>
-            <td className="py-3 px-4 flex items-center gap-2">
-              <img
-                src={`https://images.kiwi.com/airlines/64/${airline}.png`}
-                alt={airline}
-                className="w-34 h-18 object-contain"
-                onError={(e) => { e.target.onerror = null; e.target.src = '/fallback-logo.png'; }}
-              />
-              <div>
-                <div className="text-sm font-semibold">{airline}</div>
-                <div className="text-xs text-gray-600">{airlineNames?.[airline] || ""}</div>
-              </div>
-            </td>
+       <td className="py-3 px-4 flex items-center gap-2">
+  <img
+    src={flights[results.dates[0]]?.airline?.logo || `https://images.kiwi.com/airlines/64/${airline}.png`}
+    alt={flights[results.dates[0]]?.airline?.name || airline}
+    className="w-8 h-8 object-contain"
+    onError={(e) => { e.target.onerror = null; e.target.src = '/fallback-logo.png'; }}
+  />
+  <div>
+    {/* Code IATA */}
+    <div className="text-sm font-semibold">
+      {flights[results.dates[0]]?.airline?.code || airline}
+    </div>
+    {/* Nom complet */}
+    <div className="text-xs text-gray-600">
+      {flights[results.dates[0]]?.airline?.name || airlineNames?.[airline] || ""}
+    </div>
+  </div>
+</td>
+
+
             {results.dates.map(date => {
               const flight = flights[date];
               const tagList = results.tags?.[date]?.[airline] || [];
@@ -818,26 +857,33 @@ value={cargoData.pieces === "" ? "" : Number(cargoData.pieces)}
                   {flight ? (
                     <div
   className="flex flex-col items-center justify-center cursor-pointer hover:scale-105 transition"
-  onClick={() =>
-    setSelectedFlight({
-      airline,
-      flightNumber: flight.flightNumber,
-      from,
-      to,
-      tarif: freightRatesPerKg[airline],
-      segments: flight.segments,
-      cargoData, 
-      userId: user?._id, 
-      totalWeight: poidsTotal,
-      totalPrice: poidsTotal * freightRatesPerKg[airline]       
-    })
-  }
+onClick={() =>
+  setSelectedFlight({
+    airline: flight.isCompanyOffer
+      ? flight.airline  // ✅ ici on garde l’objet complet
+      : { code: airline, name: airlineNames[airline] || airline, logo: `https://images.kiwi.com/airlines/64/${airline}.png` },
+    flightNumber: flight.flightNumber,
+    from,
+    to,
+    tarif: flight.isCompanyOffer ? flight.price : freightRatesPerKg[airline],
+    segments: flight.segments,
+    cargoData,
+    userId: user?._id,
+    totalWeight: poidsTotal,
+    totalPrice: (flight.isCompanyOffer ? flight.price : freightRatesPerKg[airline]) * poidsTotal
+  })
+}
+
+
   
   >
                       <span className="font-semibold text-black text-sm mb-1">
-  {freightRatesPerKg[airline]
+  {flight.isCompanyOffer
+  ? `${flight.price.toFixed(2)} €/kg`   // ✅ tarifKg des compagnies partenaires
+  : freightRatesPerKg[airline]
     ? `${freightRatesPerKg[airline].toFixed(2)} €/kg`
     : "N/A"}
+
 </span>
 
                       <div className="flex gap-1 flex-wrap justify-center">

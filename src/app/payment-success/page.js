@@ -55,7 +55,7 @@ export default function PaymentSuccessPage() {
   }, []);
 
 const downloadRecu = () => {
-  if (!data || !data.user) return; // sécurité si data est null
+  if (!data || !data.user) return; 
 
   const element = document.getElementById("recu");
   if (!element) return;

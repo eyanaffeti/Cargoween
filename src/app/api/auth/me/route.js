@@ -50,6 +50,10 @@ export const GET = async (req) => {
       companyID: user.companyID || "",
       function: user.function || "",
       cassNumber: user.cassNumber || "",
+      airlineCode: user.airlineCode || "",
+          iataCode: user.iataCode || "",
+                    iataAirportCode: user.iataAirportCode || "",
+
     });
 
   } catch (error) {

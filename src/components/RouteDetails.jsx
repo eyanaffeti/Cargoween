@@ -9,7 +9,56 @@ import {
 } from 'react-icons/fa';
 
 export default function RouteDetails({ reservation }) {
-  const airlineLogo = `https://images.kiwi.com/airlines/64/${reservation.airline}.png`;
+  const airlineNames = {
+  BJ: "Nouvelair",
+  AZ: "ITA Airways",
+  AT: "Royal Air Maroc",
+  A3: "Aegean Airlines",
+  TK: "Turkish Airlines",
+  AF: "Air France",
+  MS: "EgyptAir",
+  AH: "Air Algérie",
+  QR: "Qatar Airways",
+  LH: "Lufthansa",
+  TU: "Tunisair",
+  EK: "Emirates",
+  UG: "Tunisair Express",
+  AA: "American Airlines",
+  AC: "Air Canada",
+  BA: "British Airways",
+  DL: "Delta Air Lines",
+  KL: "KLM Royal Dutch Airlines",
+  SU: "Aeroflot Russian Airlines",
+  UA: "United Airlines",
+  AI: "Air India",
+  QF: "Qantas Airways",
+  NH: "All Nippon Airways",
+  SQ: "Singapore Airlines",
+  CX: "Cathay Pacific",
+  KE: "Korean Air",
+  ET: "Ethiopian Airlines",
+   "7A": "Express Air Cargo" 
+};
+  
+  if (!reservation) return null; // sécurité
+
+// ✅ Gérer Amadeus (string) et Offres manuelles (objet)
+
+
+let airlineCode, airlineName, airlineLogo;
+
+if (typeof reservation.airline === "string") {
+  // Cas Amadeus
+  airlineCode = reservation.airline;
+  airlineName = airlineNames[reservation.airline] || reservation.airline;
+  airlineLogo = `https://images.kiwi.com/airlines/64/${reservation.airline}.png`;
+} if (reservation.airline === "7A" || reservation.airline?.code === "7A") {
+  airlineCode = "7A";
+  airlineName = "Express Air Cargo";
+  airlineLogo = "/expresscargo.png"; // ton logo local
+}
+
+
 
   const formatDate = (date) =>
     new Date(date).toLocaleString("fr-FR", {
@@ -115,19 +164,23 @@ const calcFlightDuration = (start, end) => {
   </div>
 </div>
 {/* Logo compagnie – bien centré et plus grand */}
-<div className="flex justify-center mt-8">
+<div className="flex flex-col justify-center items-center mt-8">
   <div className="bg-white p-3 rounded-xl shadow-sm">
     <img
       src={airlineLogo}
-      alt="Airline Logo"
+      alt={airlineName || airlineCode}
       className="h-20 w-auto object-contain"
       onError={(e) => {
         e.target.onerror = null;
-        e.target.src = "/fallback-logo.png";
+        e.target.src = "/fallback-logo.png"; // fallback universel
       }}
     />
   </div>
+  <p className="mt-2 text-sm font-semibold text-[#3F6592]">
+    {airlineCode} – {airlineName}
+  </p>
 </div>
+
 
 
 

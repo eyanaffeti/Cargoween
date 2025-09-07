@@ -19,8 +19,8 @@ export default function IdentificationPage() {
         }}
       >
         {/* ✅ Titre */}
-        <h1 className="text-[#121B2D] text-4xl font-medium mb-16">
-          Veuillez Vous Identifier?
+        <h1 className="text-[#121B2D]  text-5xl font-medium mb-16">
+          <br></br>Veuillez-Vous Identifier?
         </h1>
 
         {/* ✅ Cartes */}
@@ -36,7 +36,7 @@ export default function IdentificationPage() {
                 className="mx-auto mt-10 rounded-lg"
               />
               <h2 className="text-white text-2xl font-medium text-center mt-6">
-                Transitaires
+                Transitaire
               </h2>
             </div>
           </Link>

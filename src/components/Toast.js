@@ -10,7 +10,7 @@ export default function Toast({ message, type = "success", onClose }) {
   }, [onClose]);
 
   return (
-    <div className={`fixed bottom-6 right-6 z-50 px-5 py-3 rounded-md shadow-lg text-white
+<div className={`fixed top-6 left-1/2 transform -translate-x-1/2 z-50 px-5 py-3 rounded-md shadow-lg text-white
       ${type === "success" ? "bg-green-500" : ""}
       ${type === "error" ? "bg-red-500" : ""}
       ${type === "info" ? "bg-blue-500" : ""}

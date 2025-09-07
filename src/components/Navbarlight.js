@@ -26,15 +26,14 @@ export default function Navbarlight () {
       </div>
 
       {/* Navigation Links */}
-      <div className="flex justify-center items-center space-x-8 absolute left-[300px] top-[35px]">
+      <div className="flex justify-center items-center space-x-8 absolute left-[354px] top-[35px]">
         {[
           "A propos",
           "Transitaires",
           "Compagnies aériennes",
-          "Cargo Avion",
           "Actualités",
           "Durabilité",
-          "Contacter nous",
+          "Contactez nous",
         ].map((item) => (
           <a
             key={item}
@@ -49,13 +48,14 @@ export default function Navbarlight () {
       {/* Boutons */}
       <div className="absolute right-12 flex space-x-4 items-center">
         {/* Connexion Button */}
-        <button className="w-[160px] h-[48px] border-[2px] border-[#0089B6] text-[#121B2D] rounded-full font-medium hover:bg-[#0089B6] hover:text-white transition-all duration-300">
+        <button  onClick={() => (window.location.href = "/login")} 
+ className="w-[282px] h-[48px] border-[2px] border-[#0089B6] text-[#121B2D] rounded-full font-medium hover:bg-[#0089B6] hover:text-white transition-all duration-300">
           Connexion
         </button>
 
         {/* Langue */}
         <button className="w-[60px] h-[48px] border-[2px] border-[#0089B6] text-[#121B2D] rounded-full font-medium hover:bg-[#0089B6] hover:text-white transition-all duration-300">
-          EN
+          FR
         </button>
       </div>
     </nav>

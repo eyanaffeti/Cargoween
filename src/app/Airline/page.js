@@ -1,11 +1,11 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import Sidebar from "@/components/Sidebar";
+import Sidebar from "@/components/Sidebar-airline";
 import {
   FaCog, FaEnvelope, FaUser, FaPhone, FaMapMarkerAlt,
   FaBriefcase, FaBuilding, FaIdBadge, FaLock, FaGlobe,
-  FaCity, FaHome, FaBarcode
+  FaCity, FaHome, FaBarcode, FaChevronDown, FaEdit, FaSignOutAlt,
 } from "react-icons/fa";
 
 export default function AddTransitaire() {
@@ -18,6 +18,7 @@ export default function AddTransitaire() {
   });
   const [message, setMessage] = useState("");
   const [user, setUser] = useState(null);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -67,11 +68,27 @@ export default function AddTransitaire() {
       <Sidebar onToggle={setSidebarOpen} />
       <main className={`transition-all duration-300 flex-1 min-h-screen bg-[#3F6592] p-8 ${sidebarOpen ? 'ml-64' : 'ml-20'}`}>
         <div className="bg-white rounded-3xl p-32 shadow-lg relative">
-          {/* User display */}
-          <button className="absolute top-5 right-7 flex items-center bg-[#3F6592] text-white py-2 px-6 rounded-full shadow-md">
-            <FaUser className="mr-2" />
-            <span>{user ? `${user.firstname} ${user.lastname}` : "Utilisateur"}</span>
-          </button>
+          {/* Dropdown profil */}
+                   <div className="absolute top-5 right-7">
+                    <br></br> <button onClick={() => setDropdownOpen(!dropdownOpen)} className="flex items-center bg-[#3F6592] text-white py-2 px-6 rounded-full shadow-md">
+                       <FaUser className="mr-2" />
+                       <span>{user ? `${user.firstname} ${user.lastname}` : "Utilisateur"}</span>
+                       <FaChevronDown className="ml-2" />
+                     </button>
+                     {dropdownOpen && (
+                       <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-md z-10">
+                         <button onClick={() => router.push("/Airline/Profil")} className="w-full px-4 py-2 text-left hover:bg-gray-100 flex items-center">
+                           <FaEdit className="mr-2" /> Modifier profil
+                         </button>
+                         <button onClick={() => {
+                           localStorage.removeItem("token");
+                           router.push("/");
+                         }} className="w-full px-4 py-2 text-left hover:bg-gray-100 flex items-center text-red-500">
+                           <FaSignOutAlt className="mr-2" /> Se déconnecter
+                         </button>
+                       </div>
+                     )}
+                   </div>
 
           <h2 className="text-2xl font-semibold text-[#3F6592] mb-10 text-center">
 Tableau de bord  de compagnie aérienne        </h2>

@@ -33,7 +33,7 @@ export const POST = async (req) => {
       phoneNumber: phone,
       email,
       orderId: reservationId,
-      webhook: "https://10da-196-235-153-155.ngrok-free.app/api/konnect/webhook",
+      webhook: "https://9ef1-165-51-68-91.ngrok-free.app/api/konnect/webhook",
       silentWebhook: true,
       theme: "light",
       successUrl: "http://localhost:3000/payment-success",

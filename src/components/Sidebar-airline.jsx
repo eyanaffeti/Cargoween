@@ -54,21 +54,19 @@ export default function Sidebar({ onToggle }) {
                               <SidebarLink icon={<FaTachometerAlt />} text="Tableau de bord" isOpen={isOpen} />
           
           <div onClick={() => setUserMenuOpen(!userMenuOpen)}>
-            <SidebarLink icon={<FaUser />} text="Utilisateur" isOpen={isOpen}  hasSubMenu
+            <SidebarLink icon={<FaPlane />} text="Offres" isOpen={isOpen}  hasSubMenu
       isSubMenuOpen={userMenuOpen} />
           </div>
 
           {/* Sous-menu utilisateur */}
           {isOpen && userMenuOpen && (
             <div className="ml-8 flex flex-col space-y-2 text-sm">
-              <SidebarSubLink icon={<FaPlus />} text="Ajouter un sous-compte" href="/Transitaire/Comptes/Ajout" />
-              <SidebarSubLink icon={<FaUsers />} text="Liste des sous-comptes" href="/Transitaire/Comptes/Liste" />
+              <SidebarSubLink icon={<FaPlus />} text="Ajouter un offre" href="/Airline/offre/Ajout" />
+              <SidebarSubLink icon={<FaPlane />} text="Liste des offres" href="/Airline/offre/Liste" />
             </div>
           )}
 
-          <SidebarLink icon={<FaSearch />} text="Recherche" href="/Transitaire/Reservation" isOpen={isOpen} />
-          <SidebarLink icon={<FaCalendar />} text="Réservation" href="/Transitaire/Reservation/Liste" isOpen={isOpen} />
-          <SidebarLink icon={<FaBox />} text="Stock LTA" href="/Transitaire/AWBStock" isOpen={isOpen} />
+          <SidebarLink icon={<FaCalendar />} text="Réservation" href="/Airline/reservation" isOpen={isOpen} />
           <SidebarLink icon={<FaCog />} text="Paramètres" isOpen={isOpen} />
         </nav>
       </div>

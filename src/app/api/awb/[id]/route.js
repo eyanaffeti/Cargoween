@@ -2,11 +2,11 @@ import { connectToDatabase } from "@/lib/mongodb";
 import AWBStock from "@/models/Stockawb";
 import mongoose from "mongoose";
 
-export async function DELETE(request, context) {
-    await connectToDatabase();
+export async function DELETE(req) {
+  const url = new URL(req.url);
+  const id = url.pathname.split("/").pop();
 
- const { id } = context.params;
-
+  await connectToDatabase();
 
   if (!mongoose.Types.ObjectId.isValid(id)) {
     return new Response(JSON.stringify({ message: "ID invalide." }), { status: 400 });

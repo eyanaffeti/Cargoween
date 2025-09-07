@@ -3,7 +3,9 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Sidebar from "@/components/Sidebar";
-import { FaUser } from "react-icons/fa";
+import { FaUser, FaChevronDown,
+  FaEdit,
+  FaSignOutAlt, } from "react-icons/fa";
 import RouteDetails from '@/components/RouteDetails';
 import CargoDetails from '@/components/CargoDetails';
 import Toast from "@/components/Toast";
@@ -14,7 +16,7 @@ export default function ReservationDetails() {
   const [reservation, setReservation] = useState(null);
   const [awb, setAwb] = useState("");
   const [user, setUser] = useState(null);
-  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
 const [availableAwbs, setAvailableAwbs] = useState([]);
 const [loadingAwbs, setLoadingAwbs] = useState(true);
 const [awbType, setAwbType] = useState("Paper AWB"); 
@@ -141,7 +143,7 @@ if (response.ok && data.paymentUrl) {
 
   if (!reservation) return <div className="text-center py-10"><div className="fixed inset-0 bg-white bg-opacity-80 z-50 flex flex-col justify-center items-center">
   <img src="/preloader.gif" alt="Chargement..." className="w-54 h-44 mb-4" />
-  <span className="text-[#3F6592] font-semibold text-lg">Réservation en cours...</span>
+  <span className="text-[#3F6592] font-semibold text-lg">chargement en cours...</span>
 </div></div>;
 
 
@@ -151,43 +153,38 @@ if (response.ok && data.paymentUrl) {
       <main className={`flex-1 bg-[#F0F6FE] min-h-screen p-6 ${sidebarOpen ? 'ml-64' : 'ml-20'}`}>
         <div className="bg-white rounded-xl shadow-md p-8 relative">
 
-          {/* User Info */}
-          <div className="absolute top-14 right-8">
-
-<div className="relative user-menu">
-<button
-className="flex items-center bg-[#3F6592] text-white py-1 px-4 rounded-full shadow-md"
-onClick={() => setUserMenuOpen(!userMenuOpen)}
->
-<FaUser className="mr-2" />
-<span>{user ? `${user.firstname} ${user.lastname}` : "Utilisateur"}</span>
-</button>
-
-{userMenuOpen && (
-<div className="absolute right-0 mt-2 w-48 bg-white text-[#3F6592] rounded-lg shadow-lg z-50">
-<button
-  onClick={() => {
-    setUserMenuOpen(false);
-    window.location.href = "/Transitaire/Profil"; 
-  }}
-  className="w-full text-left px-4 py-2 hover:bg-gray-100"
->
-  Modifier profil
-</button>
-<button
-  onClick={() => {
-    localStorage.removeItem("token");
-    document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-    window.location.href = "/login";
-  }}
-  className="w-full text-left px-4 py-2 hover:bg-gray-100"
->
-  Se déconnecter
-</button>
-</div>
-)}
-</div>
-</div>
+       {/* Dropdown profil */}
+                 <div className="absolute top-5 right-7">
+                   <button
+                     onClick={() => setDropdownOpen(!dropdownOpen)}
+                     className="flex items-center bg-[#3F6592] text-white py-2 px-6 rounded-full shadow-md hover:bg-[#2c4e75] transition"
+                   >
+                     <FaUser className="mr-2" />
+                     <span>
+                       {user ? `${user.firstname} ${user.lastname}` : "Utilisateur"}
+                     </span>
+                     <FaChevronDown className="ml-2" />
+                   </button>
+                   {dropdownOpen && (
+                     <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-md z-10">
+                       <button
+                         onClick={() => router.push("/Airline/Profil")}
+                         className="w-full px-4 py-2 text-left hover:bg-gray-100 flex items-center"
+                       >
+                         <FaEdit className="mr-2" /> Modifier profil
+                       </button>
+                       <button
+                         onClick={() => {
+                           localStorage.removeItem("token");
+                           router.push("/");
+                         }}
+                         className="w-full px-4 py-2 text-left hover:bg-gray-100 flex items-center text-red-500"
+                       >
+                         <FaSignOutAlt className="mr-2" /> Se déconnecter
+                       </button>
+                     </div>
+                   )}
+                 </div>
 <h2 className="text-2xl font-bold text-center text-[#3F6592]  mt-4 mb-10">Détails de Reservation</h2>
           <div className="grid grid-cols-12 gap-6 mt-16">
 
