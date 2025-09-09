@@ -231,7 +231,7 @@ export default function ReservationsPage() {
                           className="border rounded px-2 py-1 bg-white text-sm focus:ring-2 focus:ring-[#3F6592]"
                         >
                           <option value="En attente">⏳ En attente</option>
-                          <option value="Confirmée">✅ Acceptée</option>
+                          <option value="Acceptée">✅ Acceptée</option>
                           <option value="Annulée">❌ Annulée</option>
                         </select>
                       </td>

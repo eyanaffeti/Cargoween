@@ -51,7 +51,7 @@ export default function Sidebar({ onToggle }) {
 
         {/* Navigation */}
         <nav className="mt-4 flex flex-col space-y-2 px-4">
-                              <SidebarLink icon={<FaTachometerAlt />} text="Tableau de bord" isOpen={isOpen} />
+                              <SidebarLink icon={<FaTachometerAlt />} text="Tableau de bord" href="/Transitaire" isOpen={isOpen} />
           
           <div onClick={() => setUserMenuOpen(!userMenuOpen)}>
             <SidebarLink icon={<FaUser />} text="Utilisateur" isOpen={isOpen}  hasSubMenu
