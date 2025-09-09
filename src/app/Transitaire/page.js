@@ -177,6 +177,7 @@ export default function DashboardTransitaire() {
   const [user, setUser] = useState(null);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [stats, setStats] = useState(null);
+const [opsDist, setOpsDist] = useState(null);
 
   const isMainForwarder = useMemo(() => {
     const r = (user?.role || "").toLowerCase();
@@ -190,7 +191,33 @@ useEffect(() => {
     const rUser = await fetch("/api/auth/me", { headers: { Authorization: `Bearer ${token}` } });
     const me = await rUser.json();
     setUser(me);
+try {
+  // on récupère juste ce qu'il faut
+  const rOps = await fetch(`/api/reservation?userId=${me._id}&role=${encodeURIComponent(me.role || "transitaire")}`);
+  const list = await rOps.json();
 
+  const now = Date.now();
+  let enCours = 0, livrees = 0, enAttente = 0;
+
+  (list || []).forEach(r => {
+    const dep = r?.departureDate ? new Date(r.departureDate).getTime() : null;
+    const arr = r?.arrivalDate ? new Date(r.arrivalDate).getTime() : null;
+    const etat = r?.etat || "En attente";
+
+    if (etat === "Annulée") return; // on ignore les annulées ici
+    if (!dep || !arr) { enAttente++; return; }
+
+    if (dep <= now && arr >= now) enCours++;
+    else if (arr < now)           livrees++;
+    else                          enAttente++;
+  });
+
+  setOpsDist([
+    { name: "En cours",  value: enCours,  fill: THEME.cyan },
+    { name: "Livrées",   value: livrees,  fill: THEME.blue },
+    { name: "En attente",value: enAttente,fill: THEME.purple },
+  ]);
+} catch {}
     // 👇 Appel aligné à tes autres APIs
     const url = `/api/Dashboard/Transitaire?userId=${me._id}&role=${encodeURIComponent(me.role || "transitaire")}`;
     const r = await fetch(url);
@@ -229,6 +256,26 @@ useEffect(() => {
     { stage: "Paiement", value: 0 },
     { stage: "Confirmée", value: 0 },
   ];
+// ---- A) Evolution mensuelle : barres (nb) + ligne (cumul)
+let _cum = 0;
+const evoReservations = (charts.reservationsByMonth || []).map(m => {
+  _cum += m.count || 0;
+  return { month: m.month, count: m.count || 0, cum: _cum };
+});
+// ---- C) Pareto compagnies: barres + ligne % cumulé
+const paretoAirlines = (() => {
+  const arr = (charts.topAirlines || [])
+    .map(a => ({ name: a?.name || "--", count: a?.count || 0 }))
+    .sort((a,b) => b.count - a.count)
+    .slice(0, 10);
+
+  const total = arr.reduce((s,d)=>s+d.count,0) || 1;
+  let cum = 0;
+  return arr.map(d => {
+    cum += d.count;
+    return { ...d, cumPct: Math.round((cum / total) * 100) };
+  });
+})();
 
   return (
     <div className="flex">
@@ -383,36 +430,55 @@ useEffect(() => {
                 </ResponsiveContainer>
               ) : <NoData/>}
             </div>
-
-        {/* 5) Marchandises par type d’envoi — Bar chart */}
+{/* 8) AWB par type — Pie (plein) */}
 <div className="bg-[#f8f9fc] p-6 rounded-2xl shadow-md">
-  <h3 className="text-lg font-semibold text-[#3F6592] mb-4">Marchandises par type d’envoi</h3>
-  {marchType.some(x => (x.count || x.value || 0) > 0) ? (() => {
-    const data = marchType.map((d, i) => ({
-      type: d._id,
-      count: d.count || d.value || 0,
-      fill: d.fill || COLORS[i % COLORS.length]
-    }));
-    const maxY = Math.max(5, ...data.map(d => d.count));
+  <h3 className="text-lg font-semibold text-[#3F6592] mb-4">
+    Répartition des AWB par type
+  </h3>
+
+  {charts.awbByType ? (() => {
+    const data = colorize(ensureKeys(charts.awbByType, AWB_TYPE_KEYS));
+    const hasData = data.some(x => (x.count || 0) > 0);
+    if (!hasData) return <NoData/>;
 
     return (
-      <ResponsiveContainer width="100%" height={340}>
-        <BarChart data={data}>
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="type" />
-          <YAxis allowDecimals={false} domain={[0, maxY]} />
+      <ResponsiveContainer width="100%" height={360}>
+        <PieChart margin={{ top: 0, right: 0, bottom: 2, left: 0 }}>
+          <Pie
+            data={data}
+            dataKey="count"
+            nameKey="_id"
+            cx="50%"
+            cy="42%"            // ↓ remonte un peu le pie pour laisser de la place à la légende
+            outerRadius={130}
+            stroke="#fff"
+            strokeWidth={2}
+            label={({ name, value, percent }) =>
+              `${name} • ${value} (${Math.round(percent * 100)}%)`
+            }
+          >
+            {data.map((d) => (
+              <Cell key={d._id} fill={d.fill} />
+            ))}
+          </Pie>
+
           <Tooltip />
-          <Legend />
-          <Bar dataKey="count" name="Expéditions">
-            {data.map((d, i) => <Cell key={d.type} fill={d.fill} />)}
-            <LabelList dataKey="count" position="top" />
-          </Bar>
-        </BarChart>
+
+          {/* Légende sous le graphique, centrée, avec nos couleurs */}
+          <Legend
+            verticalAlign="bottom"
+            align="center"
+            layout="horizontal"
+            iconType="square"
+            wrapperStyle={{ marginTop: 8 }}
+            payload={legendPayloadFromKeys(AWB_TYPE_KEYS)}
+          />
+        </PieChart>
       </ResponsiveContainer>
     );
   })() : <NoData/>}
 </div>
-
+   
            
 
             {/* 7) AWB — RadialBar (visibles seulement pour transitaire principal) */}
@@ -455,50 +521,31 @@ useEffect(() => {
                   })() : <NoData/>}
                 </div>
 
-{/* 8) AWB par type — Pie (plein) */}
-<div className="bg-[#f8f9fc] p-6 rounded-2xl shadow-md">
-  <h3 className="text-lg font-semibold text-[#3F6592] mb-4">
-    Répartition des AWB par type
-  </h3>
 
-  {charts.awbByType ? (() => {
-    const data = colorize(ensureKeys(charts.awbByType, AWB_TYPE_KEYS));
-    const hasData = data.some(x => (x.count || 0) > 0);
-    if (!hasData) return <NoData/>;
+     {/* 5) Marchandises par type d’envoi — Bar chart */}
+<div className="bg-[#f8f9fc] p-6 rounded-2xl shadow-md">
+  <h3 className="text-lg font-semibold text-[#3F6592] mb-4">Marchandises par type d’envoi</h3>
+  {marchType.some(x => (x.count || x.value || 0) > 0) ? (() => {
+    const data = marchType.map((d, i) => ({
+      type: d._id,
+      count: d.count || d.value || 0,
+      fill: d.fill || COLORS[i % COLORS.length]
+    }));
+    const maxY = Math.max(5, ...data.map(d => d.count));
 
     return (
-      <ResponsiveContainer width="100%" height={360}>
-        <PieChart margin={{ top: 0, right: 0, bottom: 24, left: 0 }}>
-          <Pie
-            data={data}
-            dataKey="count"
-            nameKey="_id"
-            cx="50%"
-            cy="42%"            // ↓ remonte un peu le pie pour laisser de la place à la légende
-            outerRadius={130}
-            stroke="#fff"
-            strokeWidth={2}
-            label={({ name, value, percent }) =>
-              `${name} • ${value} (${Math.round(percent * 100)}%)`
-            }
-          >
-            {data.map((d) => (
-              <Cell key={d._id} fill={d.fill} />
-            ))}
-          </Pie>
-
+      <ResponsiveContainer width="100%" height={340}>
+        <BarChart data={data}>
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis dataKey="type" />
+          <YAxis allowDecimals={false} domain={[0, maxY]} />
           <Tooltip />
-
-          {/* Légende sous le graphique, centrée, avec nos couleurs */}
-          <Legend
-            verticalAlign="bottom"
-            align="center"
-            layout="horizontal"
-            iconType="square"
-            wrapperStyle={{ marginTop: 8 }}
-            payload={legendPayloadFromKeys(AWB_TYPE_KEYS)}
-          />
-        </PieChart>
+          <Legend />
+          <Bar dataKey="count" name="Expéditions">
+            {data.map((d, i) => <Cell key={d.type} fill={d.fill} />)}
+            <LabelList dataKey="count" position="top" />
+          </Bar>
+        </BarChart>
       </ResponsiveContainer>
     );
   })() : <NoData/>}
@@ -527,7 +574,7 @@ useEffect(() => {
           <YAxis type="category" dataKey="name" width={180} />
           <Tooltip />
           <Legend />
-          <Bar dataKey="count" name="Réservations" fill={THEME.blue}>
+          <Bar dataKey="count" name="Réservations" fill={THEME.cyan}>
             <LabelList dataKey="count" position="right" />
           </Bar>
         </BarChart>
@@ -535,6 +582,59 @@ useEffect(() => {
     );
   })() : <NoData/>}
 </div>
+{/* Opérationnel : En cours / Livrées / En attente */}
+<div className="bg-[#f8f9fc] p-6 rounded-2xl shadow-md">
+  <h3 className="text-lg font-semibold text-[#3F6592] mb-4">
+    Livraisons (opérationnel)
+  </h3>
+
+  {opsDist && opsDist.some(d => d.value > 0) ? (
+    <ResponsiveContainer width="100%" height={340}>
+      <PieChart margin={{ bottom: 24 }}>
+        <Pie
+          data={opsDist}
+          dataKey="value"
+          nameKey="name"
+          cx="50%"
+          cy="45%"
+          outerRadius={120}
+          stroke="#fff"
+          strokeWidth={2}
+          label={({ name, value, percent }) =>
+            `${name} • ${value} (${Math.round(percent * 100)}%)`
+          }
+        >
+          {opsDist.map(d => <Cell key={d.name} fill={d.fill} />)}
+        </Pie>
+        <Tooltip />
+        <Legend verticalAlign="bottom" align="center" iconType="square" />
+      </PieChart>
+    </ResponsiveContainer>
+  ) : <NoData/>}
+</div>
+{/* Évolution du nombre de réservations */}
+<div className="bg-[#f8f9fc] p-6 rounded-2xl shadow-md xl:col-span-2">
+  <h3 className="text-lg font-semibold text-[#3F6592] mb-4">
+    Évolution du nombre de réservations
+  </h3>
+
+  {evoReservations.some(d => d.count > 0) ? (
+    <ResponsiveContainer width="100%" height={360}>
+      <ComposedChart data={evoReservations}>
+        <CartesianGrid strokeDasharray="3 3" />
+        <XAxis dataKey="month" />
+        <YAxis yAxisId="left" allowDecimals={false} />
+        <YAxis yAxisId="right" orientation="right" unit="" domain={[0, Math.max(...evoReservations.map(d=>d.cum), 5)]}/>
+        <Tooltip />
+        <Legend />
+        <Bar yAxisId="left" dataKey="count" name="Réservations" fill={THEME.blue} radius={[6,6,0,0]} />
+        <Line yAxisId="right" type="monotone" dataKey="cum" name="Total cumulé" stroke={THEME.cyan} strokeWidth={2}/>
+      </ComposedChart>
+    </ResponsiveContainer>
+  ) : <NoData/>}
+</div>
+
+
 
               </>
             )}
