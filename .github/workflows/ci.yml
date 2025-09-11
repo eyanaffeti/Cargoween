@@ -39,5 +39,5 @@ jobs:
 
       # Déploiement sur Kubernetes
       - name: Deploy to GKE
-        run: kubectl apply -f k8s/all-in-one.yaml
+        run: kubectl apply -f K8s/all-in-one.yaml
 
