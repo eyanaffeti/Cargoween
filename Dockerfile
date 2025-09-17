@@ -7,7 +7,7 @@ RUN npm install --legacy-peer-deps
 COPY . .
 
 # Donne une valeur factice pour compiler
-ENV MONGODB_URI="mongodb://placeholder"
+ENV MONGODB_URI="mongodb+srv://eyaneffati86:VMyELufNAtSyPkNu@cargoween.uuqw6qw.mongodb.net/?retryWrites=true&w=majority&appName=cargoween"
 
 RUN npm run build
 
