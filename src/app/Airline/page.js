@@ -68,28 +68,44 @@ export default function AirlineDashboard() {
   const [user, setUser] = useState(null);
   const [stats, setStats] = useState(null);
   const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(true); // ✅ loader
 
-  // --- fetch
-  useEffect(() => {
+useEffect(() => {
     (async () => {
       const token = localStorage.getItem("token");
       if (!token) return;
 
-      const rMe = await fetch("/api/auth/me", { headers: { Authorization: `Bearer ${token}` } });
-      const me  = await rMe.json();
-      setUser(me);
+      try {
+        const rMe = await fetch("/api/auth/me", { headers: { Authorization: `Bearer ${token}` } });
+        const me  = await rMe.json();
+        setUser(me);
 
-      const code =
-        me?.airlineCode || me?.iataCode || NAME2CODE[me?.company] || "";
+        const code =
+          me?.airlineCode || me?.iataCode || NAME2CODE[me?.company] || "";
 
-      const url = `/api/Dashboard/Airline?userId=${me._id}&role=airline&airlineCode=${encodeURIComponent(code)}`;
-      const r = await fetch(url);
-      const d = await r.json();
-      if (!r.ok) { setMessage(d?.message || "Erreur de chargement"); return; }
-      setStats(d);
-    })().catch(() => setMessage("Impossible de charger les statistiques."));
+        const url = `/api/Dashboard/Airline?userId=${me._id}&role=airline&airlineCode=${encodeURIComponent(code)}`;
+        const r = await fetch(url);
+        const d = await r.json();
+        if (!r.ok) { setMessage(d?.message || "Erreur de chargement"); return; }
+        setStats(d);
+      } catch (err) {
+        setMessage("Impossible de charger les statistiques.");
+      } finally {
+        setLoading(false); // ✅ désactive le loader
+      }
+    })();
   }, []);
 
+
+  // ✅ Loader plein écran
+  if (loading) {
+    return (
+      <div className="fixed inset-0 bg-white bg-opacity-90 flex flex-col items-center justify-center z-50">
+        <img src="/preloader.gif" alt="Chargement..." className="w-28 h-28 mb-4" />
+        <p className="text-[#3F6592] text-lg font-semibold">Chargement du tableau de bord...</p>
+      </div>
+    );
+  }
   if (!stats) {
     return (
       <div className="flex">

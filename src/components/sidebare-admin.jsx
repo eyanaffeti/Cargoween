@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { FaUser, FaTachometerAlt, FaCalendar, FaBox, FaCog, FaSignOutAlt, FaBars, FaTimes, FaPlus, FaPlane, FaUsers } from "react-icons/fa";
+import { FaUser, FaTachometerAlt, FaCalendar, FaEdit, FaCog, FaSignOutAlt, FaBars, FaTimes, FaPlus, FaPlane, FaUsers } from "react-icons/fa";
 import Link from "next/link";
 import { useRouter } from "next/navigation"; // Importation du router de Next.js
 
@@ -9,6 +9,7 @@ export default function Sidebar({ onToggle }) {
   const [isOpen, setIsOpen] = useState(true);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const router = useRouter(); // Initialisation du router pour la redirection
+  const [settingsMenuOpen, setSettingsMenuOpen] = useState(false);
 
   const handleToggle = () => {
     setIsOpen(!isOpen);
@@ -46,7 +47,7 @@ export default function Sidebar({ onToggle }) {
 
         {/* Navigation */}
         <nav className="mt-4 flex flex-col space-y-2 px-4">
-                    <SidebarLink icon={<FaTachometerAlt />} text="Tableau de bord" href="/Administrateur" isOpen={isOpen} />
+                    <SidebarLink icon={<FaTachometerAlt />} text="Tableau de bord" href="/Administrateur/" isOpen={isOpen} />
 
           <div onClick={() => setUserMenuOpen(!userMenuOpen)}>
             <SidebarLink icon={<FaUser />} text="Utilisateurs" isOpen={isOpen} />
@@ -62,9 +63,25 @@ export default function Sidebar({ onToggle }) {
             </div>
           )}
 
-          <SidebarLink icon={<FaCalendar />} text="Réservations" isOpen={isOpen} />
-          <SidebarLink icon={<FaCog />} text="Paramètres" isOpen={isOpen} />
-        </nav>
+          <SidebarLink icon={<FaCalendar />} text="Réservations" href="/Administrateur/Reservations" isOpen={isOpen} />
+{/* Menu Paramètres */}
+          <div onClick={() => setSettingsMenuOpen(!settingsMenuOpen)}>
+            <SidebarLink
+              icon={<FaCog />}
+              text="Paramètres"
+              isOpen={isOpen}
+              hasSubMenu
+              isSubMenuOpen={settingsMenuOpen}
+            />
+          </div>
+          {isOpen && settingsMenuOpen && (
+            <div className="ml-8 flex flex-col space-y-2 text-sm">
+              <SidebarSubLink icon={<FaEdit />} text="Modifier profil" href="/Administrateur/Profil" />
+              <div onClick={handleLogout}>
+                <SidebarSubLink icon={<FaSignOutAlt />} text="Se déconnecter" />
+              </div>
+            </div>
+          )}        </nav>
       </div>
 
       {/* Déconnexion en bas */}
@@ -75,17 +92,20 @@ export default function Sidebar({ onToggle }) {
   );
 }
 
-function SidebarLink({ icon, text, isOpen, onClick }) {
-  return (
+function SidebarLink({ icon, text, isOpen, onClick, href }) {
+  const content = (
     <div
       className="flex items-center space-x-3 hover:bg-white/10 p-3 rounded-lg cursor-pointer transition-all"
-      onClick={onClick} // Ajout de l'événement onClick pour la déconnexion
+      onClick={onClick}
     >
       {icon}
       {isOpen && <span>{text}</span>}
     </div>
   );
+
+  return href ? <Link href={href}>{content}</Link> : content;
 }
+
 
 function SidebarSubLink({ icon, text, href }) {
   const content = (

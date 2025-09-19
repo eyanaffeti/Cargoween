@@ -3,7 +3,7 @@
 import { useState } from "react";
 import {
   FaUser, FaSearch, FaCalendar, FaBox, FaCog, FaSignOutAlt,
-  FaBars, FaTimes, FaPlus, FaPlane, FaUsers, FaChevronRight ,FaTachometerAlt
+  FaBars, FaTimes, FaPlus, FaEdit, FaUsers, FaChevronRight ,FaTachometerAlt
 } from "react-icons/fa";
 import Link from "next/link"; 
 import { useRouter } from "next/navigation"; // Importation du router de Next.js
@@ -14,6 +14,7 @@ export default function Sidebar({ onToggle }) {
   const [isOpen, setIsOpen] = useState(true);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const router = useRouter(); // Initialisation du router pour la redirection
+  const [settingsMenuOpen, setSettingsMenuOpen] = useState(false);
 
 
   const handleToggle = () => {
@@ -69,8 +70,24 @@ export default function Sidebar({ onToggle }) {
           <SidebarLink icon={<FaSearch />} text="Recherche" href="/Transitaire/Reservation" isOpen={isOpen} />
           <SidebarLink icon={<FaCalendar />} text="Réservation" href="/Transitaire/Reservation/Liste" isOpen={isOpen} />
           <SidebarLink icon={<FaBox />} text="Stock LTA" href="/Transitaire/AWBStock" isOpen={isOpen} />
-          <SidebarLink icon={<FaCog />} text="Paramètres" isOpen={isOpen} />
-        </nav>
+{/* Menu Paramètres */}
+          <div onClick={() => setSettingsMenuOpen(!settingsMenuOpen)}>
+            <SidebarLink
+              icon={<FaCog />}
+              text="Paramètres"
+              isOpen={isOpen}
+              hasSubMenu
+              isSubMenuOpen={settingsMenuOpen}
+            />
+          </div>
+          {isOpen && settingsMenuOpen && (
+            <div className="ml-8 flex flex-col space-y-2 text-sm">
+              <SidebarSubLink icon={<FaEdit />} text="Modifier profil" href="/Transitaire/Profil" />
+              <div onClick={handleLogout}>
+                <SidebarSubLink icon={<FaSignOutAlt />} text="Se déconnecter" />
+              </div>
+            </div>
+          )}        </nav>
       </div>
 
       {/* Déconnexion en bas */}

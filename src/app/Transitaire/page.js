@@ -174,6 +174,8 @@ export default function DashboardTransitaire() {
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [message, setMessage] = useState("");
+    const [loading, setLoading] = useState(true); // ✅ Loader
+
   const [user, setUser] = useState(null);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [stats, setStats] = useState(null);
@@ -183,50 +185,38 @@ const [opsDist, setOpsDist] = useState(null);
     const r = (user?.role || "").toLowerCase();
     return r.includes("transitaire") && !r.includes("second");
   }, [user]);
-useEffect(() => {
-  const fetchAll = async () => {
-    const token = localStorage.getItem("token");
-    if (!token) return;
+  useEffect(() => {
+    const fetchAll = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        if (!token) return;
+        const rUser = await fetch("/api/auth/me", { headers: { Authorization: `Bearer ${token}` } });
+        const me = await rUser.json();
+        setUser(me);
 
-    const rUser = await fetch("/api/auth/me", { headers: { Authorization: `Bearer ${token}` } });
-    const me = await rUser.json();
-    setUser(me);
-try {
-  // on récupère juste ce qu'il faut
-  const rOps = await fetch(`/api/reservation?userId=${me._id}&role=${encodeURIComponent(me.role || "transitaire")}`);
-  const list = await rOps.json();
+        const r = await fetch(`/api/Dashboard/Transitaire?userId=${me._id}&role=${encodeURIComponent(me.role || "transitaire")}`);
+        const d = await r.json();
+        setStats(d);
+      } catch (err) {
+        setMessage("Impossible de charger les statistiques.");
+      } finally {
+        setLoading(false); // ✅ Arrêt du loader
+      }
+    };
+    fetchAll();
+  }, []);
 
-  const now = Date.now();
-  let enCours = 0, livrees = 0, enAttente = 0;
-
-  (list || []).forEach(r => {
-    const dep = r?.departureDate ? new Date(r.departureDate).getTime() : null;
-    const arr = r?.arrivalDate ? new Date(r.arrivalDate).getTime() : null;
-    const etat = r?.etat || "En attente";
-
-    if (etat === "Annulée") return; // on ignore les annulées ici
-    if (!dep || !arr) { enAttente++; return; }
-
-    if (dep <= now && arr >= now) enCours++;
-    else if (arr < now)           livrees++;
-    else                          enAttente++;
-  });
-
-  setOpsDist([
-    { name: "En cours",  value: enCours,  fill: THEME.cyan },
-    { name: "Livrées",   value: livrees,  fill: THEME.blue },
-    { name: "En attente",value: enAttente,fill: THEME.purple },
-  ]);
-} catch {}
-    // 👇 Appel aligné à tes autres APIs
-    const url = `/api/Dashboard/Transitaire?userId=${me._id}&role=${encodeURIComponent(me.role || "transitaire")}`;
-    const r = await fetch(url);
-    const d = await r.json();
-    setStats(normalize(d));
-    
-  };
-  fetchAll().catch(() => setMessage("Impossible de charger les statistiques."));
-}, []);
+  // ✅ Loader plein écran
+ if (loading) {
+  return (
+    <div className="fixed inset-0 bg-white bg-opacity-90 flex flex-col items-center justify-center z-50">
+      <img src="/preloader.gif" alt="Chargement..." className="w-28 h-28 mb-4" />
+      <p className="text-[#3F6592] text-lg font-semibold">
+        Chargement du tableau de bord...
+      </p>
+    </div>
+  );
+}
 
 
   if (!stats) {
@@ -347,7 +337,7 @@ const paretoAirlines = (() => {
 
             {!isMainForwarder && (
               <div className="md:col-span-2 xl:col-span-3 text-[#3F6592] bg-[#f0f5fb] p-6 rounded-2xl border border-[#e3eaf5]">
-                <p className="text-sm">Note : En tant que <b>transitaire secondaire</b>, vous ne voyez que vos réservations et vos marchandises. Les sections AWB et sous‑comptes sont masquées.</p>
+                <p className="text-sm">Note : En tant que <b>transitaire secondaire</b>, vous ne voyez que vos réservations et vos marchandises. Les statistiques desnuméros LTA et sous‑comptes sont masquées.</p>
               </div>
             )}
           </div>
@@ -431,6 +421,8 @@ const paretoAirlines = (() => {
               ) : <NoData/>}
             </div>
 {/* 8) AWB par type — Pie (plein) */}
+{isMainForwarder && (
+              <>
 <div className="bg-[#f8f9fc] p-6 rounded-2xl shadow-md">
   <h3 className="text-lg font-semibold text-[#3F6592] mb-4">
     Répartition des AWB par type
@@ -477,7 +469,7 @@ const paretoAirlines = (() => {
       </ResponsiveContainer>
     );
   })() : <NoData/>}
-</div>
+</div></>)}
    
            
 
@@ -551,37 +543,7 @@ const paretoAirlines = (() => {
   })() : <NoData/>}
 </div>
 
-{/* 6) Top compagnies — Bar chart (classement) */}
-<div className="bg-[#f8f9fc] p-6 rounded-2xl shadow-md">
-  <h3 className="text-lg font-semibold text-[#3F6592] mb-4">
-    Top compagnies (mes réservations)
-  </h3>
 
-  {charts.topAirlines?.length ? (() => {
-    // tri décroissant + limite 10
-    const data = [...charts.topAirlines]
-      .map(a => ({ name: a?.name || "--", count: a?.count || 0 }))
-      .sort((a, b) => b.count - a.count)
-      .slice(0, 10);
-
-    const maxX = Math.max(5, ...data.map(d => d.count));
-
-    return (
-      <ResponsiveContainer width="100%" height={360}>
-        <BarChart data={data} layout="vertical" margin={{ left: 24 }}>
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis type="number" allowDecimals={false} domain={[0, maxX]} />
-          <YAxis type="category" dataKey="name" width={180} />
-          <Tooltip />
-          <Legend />
-          <Bar dataKey="count" name="Réservations" fill={THEME.cyan}>
-            <LabelList dataKey="count" position="right" />
-          </Bar>
-        </BarChart>
-      </ResponsiveContainer>
-    );
-  })() : <NoData/>}
-</div>
 {/* Opérationnel : En cours / Livrées / En attente */}
 <div className="bg-[#f8f9fc] p-6 rounded-2xl shadow-md">
   <h3 className="text-lg font-semibold text-[#3F6592] mb-4">
@@ -612,7 +574,44 @@ const paretoAirlines = (() => {
     </ResponsiveContainer>
   ) : <NoData/>}
 </div>
-{/* Évolution du nombre de réservations */}
+
+
+
+
+              </>
+            )}
+            {/* 6) Top compagnies — Bar chart (classement) */}
+<div className="bg-[#f8f9fc] p-6 rounded-2xl shadow-md">
+  <h3 className="text-lg font-semibold text-[#3F6592] mb-4">
+    Top compagnies (mes réservations)
+  </h3>
+
+  {charts.topAirlines?.length ? (() => {
+    // tri décroissant + limite 10
+    const data = [...charts.topAirlines]
+      .map(a => ({ name: a?.name || "--", count: a?.count || 0 }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 10);
+
+    const maxX = Math.max(5, ...data.map(d => d.count));
+
+    return (
+      <ResponsiveContainer width="100%" height={360}>
+        <BarChart data={data} layout="vertical" margin={{ left: 24 }}>
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis type="number" allowDecimals={false} domain={[0, maxX]} />
+          <YAxis type="category" dataKey="name" width={180} />
+          <Tooltip />
+          <Legend />
+          <Bar dataKey="count" name="Réservations" fill={THEME.cyan}>
+            <LabelList dataKey="count" position="right" />
+          </Bar>
+        </BarChart>
+      </ResponsiveContainer>
+    );
+  })() : <NoData/>}
+</div>
+            {/* Évolution du nombre de réservations */}
 <div className="bg-[#f8f9fc] p-6 rounded-2xl shadow-md xl:col-span-2">
   <h3 className="text-lg font-semibold text-[#3F6592] mb-4">
     Évolution du nombre de réservations
@@ -633,11 +632,6 @@ const paretoAirlines = (() => {
     </ResponsiveContainer>
   ) : <NoData/>}
 </div>
-
-
-
-              </>
-            )}
 
 
           

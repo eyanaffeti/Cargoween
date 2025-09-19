@@ -22,6 +22,7 @@ export default function ReservationsPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 8; // ✅ nombre de lignes par page
   const router = useRouter();
+    const [loading, setLoading] = useState(true); // ✅ état pour loader
 
   // ✅ Récupération des réservations du transitaire
   const fetchReservations = async (userId) => {
@@ -31,6 +32,8 @@ export default function ReservationsPage() {
       if (res.ok) setReservations(data);
     } catch (err) {
       console.error("❌ Erreur fetchReservations:", err);
+    }finally {
+      setLoading(false); // ✅ stoppe le loader
     }
   };
 
@@ -65,6 +68,14 @@ export default function ReservationsPage() {
         return "bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full text-xs font-semibold";
     }
   };
+   if (loading) {
+    return (
+      <div className="fixed inset-0 bg-white flex flex-col justify-center items-center z-50">
+        <img src="/preloader.gif" alt="Chargement..." className="w-32 h-32 mb-4" />
+        <p className="text-[#3F6592] font-semibold text-lg">Chargement des réservations...</p>
+      </div>
+    );
+  }
 
   // ✅ Filtrage recherche
   const filteredReservations = reservations.filter((res) => {

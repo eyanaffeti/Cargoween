@@ -1,50 +1,40 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Sidebar from "@/components/Sidebar-airline";
-
+import Sidebar from "@/components/sidebare-admin";
 import { useRouter } from "next/navigation";
 import {
   FaUser,
   FaPlaneDeparture,
   FaPlaneArrival,
-  FaClock,
-  FaCheckCircle,
   FaChevronDown,
   FaEdit,
   FaSignOutAlt,
-  FaTrash,
-  FaPlane,
   FaSearch,
 } from "react-icons/fa";
 import Toast from "@/components/Toast";
 
-export default function ReservationsPage() {
+export default function ReservationsAdminPage() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [user, setUser] = useState(null);
   const [reservations, setReservations] = useState([]);
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 7; // ✅ nombre de lignes par page
+  const itemsPerPage = 7;
   const router = useRouter();
-  const [toast, setToast] = useState({ show: false, message: "", type: "" });
-    const [loading, setLoading] = useState(true); // ✅ état pour loader
+  const [loading, setLoading] = useState(true);
 
-
-
-  // ✅ Récupération des réservations
-  const fetchReservations = async (userId, role, airlineCode) => {
+  // ✅ Récupération des réservations (toutes pour admin)
+  const fetchReservations = async (userId, role) => {
     try {
-      const res = await fetch(
-        `/api/reservation?userId=${userId}&role=${role}&airlineCode=${airlineCode}`
-      );
+      const res = await fetch(`/api/reservation?userId=${userId}&role=${role}`);
       const data = await res.json();
       if (res.ok) setReservations(data);
     } catch (err) {
-      console.error("❌ Erreur fetchReservations compagnie:", err);
-    }finally {
-      setLoading(false); // ✅ stoppe le loader
+      console.error("❌ Erreur fetchReservations admin:", err);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -59,57 +49,24 @@ export default function ReservationsPage() {
       const data = await res.json();
       if (res.ok) {
         setUser(data);
-        fetchReservations(data._id, data.role, data.airlineCode);
+        fetchReservations(data._id, data.role);
       }
     };
     fetchUser();
   }, []);
 
-  // ✅ Suppression d'une réservation
-const handleDelete = async (id) => {
-  // Au lieu de confirm()
-  setToast({
-    show: true,
-    message: (
-      <div className="flex flex-col gap-2">
-        <p>⚠️ Supprimer cette réservation ?</p>
-        <div className="flex gap-2 justify-end">
-          <button
-            onClick={async () => {
-              try {
-                await fetch(`/api/reservation/${id}`, { method: "DELETE" });
-setReservations((prev) => prev.filter((r) => r._id !== id));
-                setToast({ show: true, message: "✅ Offre supprimée", type: "success" });
-              } catch {
-                setToast({ show: true, message: "❌ Erreur lors de la suppression", type: "error" });
-              }
-              setTimeout(() => setToast({ show: false, message: "", type: "" }), 3000);
-            }}
-            className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-md text-sm"
-          >
-            Oui
-          </button>
-          <button
-            onClick={() => setToast({ show: false, message: "", type: "" })}
-            className="bg-gray-300 px-3 py-1 rounded-md text-sm"
-          >
-            Non
-          </button>
-        </div>
-      </div>
-    ),
-    type: "warning",
-  });
-};
- if (loading) {
+  if (loading) {
     return (
       <div className="fixed inset-0 bg-white flex flex-col justify-center items-center z-50">
         <img src="/preloader.gif" alt="Chargement..." className="w-32 h-32 mb-4" />
-        <p className="text-[#3F6592] font-semibold text-lg">Chargement des réservations...</p>
+        <p className="text-[#3F6592] font-semibold text-lg">
+          Chargement des réservations...
+        </p>
       </div>
     );
   }
-  // ✅ Filtrage par recherche
+
+  // ✅ Filtrage
   const filteredReservations = reservations.filter((res) => {
     const searchLower = search.toLowerCase();
     return (
@@ -137,22 +94,20 @@ setReservations((prev) => prev.filter((r) => r._id !== id));
         }`}
       >
         <div className="bg-white rounded-3xl p-10 shadow-lg w-full max-w-7xl relative">
-          {/* Dropdown profil */}
+          {/* Profil dropdown */}
           <div className="absolute top-5 right-7">
             <button
               onClick={() => setDropdownOpen(!dropdownOpen)}
               className="flex items-center bg-[#3F6592] text-white py-2 px-6 rounded-full shadow-md hover:bg-[#2c4e75] transition"
             >
               <FaUser className="mr-2" />
-              <span>
-                {user ? `${user.firstname} ${user.lastname}` : "Utilisateur"}
-              </span>
+              <span>{user ? `${user.firstname} ${user.lastname}` : "Utilisateur"}</span>
               <FaChevronDown className="ml-2" />
             </button>
             {dropdownOpen && (
               <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-md z-10">
                 <button
-                  onClick={() => router.push("/Airline/Profil")}
+                  onClick={() => router.push("/Administrateur/Profil")}
                   className="w-full px-4 py-2 text-left hover:bg-gray-100 flex items-center"
                 >
                   <FaEdit className="mr-2" /> Modifier profil
@@ -160,7 +115,7 @@ setReservations((prev) => prev.filter((r) => r._id !== id));
                 <button
                   onClick={() => {
                     localStorage.removeItem("token");
-                    router.push("/");
+                    router.push("/login");
                   }}
                   className="w-full px-4 py-2 text-left hover:bg-gray-100 flex items-center text-red-500"
                 >
@@ -169,17 +124,17 @@ setReservations((prev) => prev.filter((r) => r._id !== id));
               </div>
             )}
           </div>
-
+<br></br> <br></br> <br></br> 
           <h2 className="text-3xl font-bold text-center text-[#3F6592] mb-6">
-            📦 Réservations sur mes Offres publiées
+            📑 Liste De Toutes Les Réservations
           </h2>
-
-          {/* ✅ Barre de recherche */}
+<br></br><br></br>
+          {/* Recherche */}
           <div className="flex items-center mb-6">
             <FaSearch className="text-gray-500 mr-2" />
             <input
               type="text"
-              placeholder="Rechercher par vol, départ, client..."
+              placeholder="Rechercher par vol, départ, transitaire..."
               value={search}
               onChange={(e) => {
                 setSearch(e.target.value);
@@ -188,15 +143,8 @@ setReservations((prev) => prev.filter((r) => r._id !== id));
               className="w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-[#3F6592] focus:outline-none"
             />
           </div>
-{toast.show && (
-  <Toast
-    message={toast.message}
-    type={toast.type}
-    onClose={() => setToast({ show: false, message: "", type: "" })}
-  />
-)}
 
-
+          {/* Tableau */}
           <div className="overflow-x-auto rounded-xl shadow border">
             <table className="min-w-full bg-white text-sm rounded-lg text-center">
               <thead className="bg-[#3F6592] text-white">
@@ -208,14 +156,15 @@ setReservations((prev) => prev.filter((r) => r._id !== id));
                   <th className="py-3 px-4">Email transitaire</th>
                   <th className="py-3 px-4">Date</th>
                   <th className="py-3 px-4">Statut</th>
+                  <th className="py-3 px-4">Ajouté par</th>
+
                   <th className="py-3 px-4">Détails</th>
-                  <th className="py-3 px-4">❌ Supprimer</th>
                 </tr>
               </thead>
               <tbody>
                 {paginatedReservations.length === 0 ? (
                   <tr>
-                    <td colSpan="9" className="text-center py-6 text-gray-500">
+                    <td colSpan="8" className="text-center py-6 text-gray-500">
                       Aucune réservation trouvée.
                     </td>
                   </tr>
@@ -235,60 +184,31 @@ setReservations((prev) => prev.filter((r) => r._id !== id));
                       <td className="py-3 px-4">
                         {new Date(res.departureDate).toLocaleDateString("fr-FR")}
                       </td>
+<td className="py-3 px-4">
+  <span
+    className={`px-3 py-1 rounded-full text-xs font-semibold
+      ${res.etat === "Acceptée" ? "bg-green-100 text-green-700" : ""}
+      ${res.etat === "En attente" ? "bg-yellow-100 text-yellow-700" : ""}
+      ${res.etat === "Annulée" ? "bg-red-100 text-red-700" : ""}
+    `}
+  >
+    {res.etat || "En attente"}
+  </span>
+</td>
                       <td className="py-3 px-4">
-                        <select
-                          value={res.etat || "En attente"}
-                          onChange={async (e) => {
-                            const newStatus = e.target.value;
-                            try {
-                              const response = await fetch(
-                                `/api/reservation/${res._id}`,
-                                {
-                                  method: "PATCH",
-                                  headers: {
-                                    "Content-Type": "application/json",
-                                    Authorization: `Bearer ${localStorage.getItem("token")}`,
-                                  },
-                                  body: JSON.stringify({ etat: newStatus }),
-                                }
-                              );
+  {res.user
+    ? `${res.user.firstname || ""} ${res.user.lastname || ""} (${res.user.phone || "—"})`
+    : "—"}
+</td>
 
-                              if (response.ok) {
-                                setReservations((prev) =>
-                                  prev.map((r) =>
-                                    r._id === res._id
-                                      ? { ...r, etat: newStatus }
-                                      : r
-                                  )
-                                );
-                              }
-                            } catch (err) {
-                              console.error("❌ Erreur réseau:", err);
-                            }
-                          }}
-                          className="border rounded px-2 py-1 bg-white text-sm focus:ring-2 focus:ring-[#3F6592]"
-                        >
-                          <option value="En attente">⏳ En attente</option>
-                          <option value="Acceptée">✅ Acceptée</option>
-                          <option value="Annulée">❌ Annulée</option>
-                        </select>
-                      </td>
                       <td className="py-3 px-4">
                         <button
                           onClick={() =>
-                            router.push(`/Airline/reservation/${res._id}`)
+                            router.push(`/Administrateur/Reservations/${res._id}`)
                           }
                           className="text-xs text-white bg-[#3F6592] hover:bg-[#2c4e75] px-4 py-2 rounded-full transition"
                         >
                           Voir détails
-                        </button>
-                      </td>
-                      <td className="py-3 px-4">
-                        <button
-                          onClick={() => handleDelete(res._id)}
-                          className="text-xs text-white bg-red-500 hover:bg-red-600 px-3 py-2 rounded-full shadow transition flex items-center justify-center"
-                        >
-                          <FaTrash className="mr-1" /> Supprimer
                         </button>
                       </td>
                     </tr>
@@ -298,7 +218,7 @@ setReservations((prev) => prev.filter((r) => r._id !== id));
             </table>
           </div>
 
-          {/* ✅ Pagination */}
+          {/* Pagination */}
           <div className="flex justify-between items-center mt-6">
             <button
               disabled={currentPage === 1}

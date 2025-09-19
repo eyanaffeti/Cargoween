@@ -15,6 +15,7 @@ export default function PublierOffre() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [message, setMessage] = useState("");
 const [offres, setOffres] = useState([]);
+      const [messageType, setMessageType] = useState(""); // ✅ success | error
 
   const [formData, setFormData] = useState({
     departureAirport: "",
@@ -162,13 +163,19 @@ const [offres, setOffres] = useState([]);
     const data = await res.json();
     if (res.ok) {
       setMessage("✅ Offre publiée avec succès !");
+                        setMessageType("success"); // ✅ vert
+
       setTimeout(() => router.push("/Airline/offre/Liste"), 2000);
     } else {
       setMessage(data.message || "❌ Erreur lors de la publication.");
+                          setMessageType("error"); // ✅ rouge
+
     }
   } catch (err) {
     console.error(err);
     setMessage("❌ Erreur serveur.");
+                        setMessageType("error"); // ✅ rouge
+
   }
 };
 
@@ -203,8 +210,16 @@ const [offres, setOffres] = useState([]);
           </div>
 
           <h2 className="text-2xl font-semibold text-[#3F6592] mb-10 text-center">Publier une offre de fret aérien </h2>
-          {message && <p className="text-center text-red-500 mb-6">{message}</p>}
-
+{/* ✅ Message inline coloré */}
+        {message && (
+          <p
+            className={`text-center font-medium mb-4 ${
+              messageType === "success" ? "text-green-500" : "text-red-500"
+            }`}
+          >
+            {message}
+          </p>
+        )}
           <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-6">
 
             {/* Champ départ */}
@@ -288,21 +303,36 @@ const [offres, setOffres] = useState([]);
             </div>
 
             {/* Dates */}
-            <div>
-              <label className="block mb-1 text-sm font-medium">Date de départ</label>
-              <div className="flex items-center border-2 border-[#3F6592] rounded-md p-2">
-                <FaCalendarAlt className="mr-2 text-gray-600" />
-                <input type="date" name="departureDate" value={formData.departureDate} onChange={handleChange} className="w-full outline-none" required />
-              </div>
-            </div>
+        <div>
+  <label className="block mb-1 text-sm font-medium">Date et heure de départ</label>
+  <div className="flex items-center border-2 border-[#3F6592] rounded-md p-2">
+    <FaCalendarAlt className="mr-2 text-gray-600" />
+    <input
+      type="datetime-local"
+      name="departureDate"
+      value={formData.departureDate}
+      onChange={handleChange}
+      className="w-full outline-none"
+      required
+    />
+  </div>
+</div>
 
-            <div>
-              <label className="block mb-1 text-sm font-medium">Date d’arrivée</label>
-              <div className="flex items-center border-2 border-[#3F6592] rounded-md p-2">
-                <FaCalendarAlt className="mr-2 text-gray-600" />
-                <input type="date" name="arrivalDate" value={formData.arrivalDate} onChange={handleChange} className="w-full outline-none" required />
-              </div>
-            </div>
+<div>
+  <label className="block mb-1 text-sm font-medium">Date et heure d’arrivée</label>
+  <div className="flex items-center border-2 border-[#3F6592] rounded-md p-2">
+    <FaCalendarAlt className="mr-2 text-gray-600" />
+    <input
+      type="datetime-local"
+      name="arrivalDate"
+      value={formData.arrivalDate}
+      onChange={handleChange}
+      className="w-full outline-none"
+      required
+    />
+  </div>
+</div>
+
 
             {/* Flight number */}
             <div>

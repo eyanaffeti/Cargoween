@@ -16,6 +16,8 @@ export default function LoginPage() {
   const [showVerification, setShowVerification] = useState(false);
   const [userEmail, setUserEmail] = useState("");
   const router = useRouter();
+      const [messageType, setMessageType] = useState(""); // ✅ success | error
+
 
    // Vérifier si l'utilisateur est déjà connecté avec un token valide
    useEffect(() => {
@@ -89,15 +91,21 @@ export default function LoginPage() {
         // Si l'utilisateur n'est pas encore vérifié, on lui demande un code
         console.log("L'utilisateur doit entrer le code de vérification !");
         setMessage("📩 Code de vérification envoyé à votre e-mail !");
+                        setMessageType("success"); // ✅ vert
+
         setUserEmail(formData.email);
         setShowVerification(true);
       } else {
         console.log("Erreur de connexion :", data.message);
         setMessage(data.message || "Erreur lors de la connexion");
+                      setMessageType("error"); // ✅ rouge
+
       }
     } catch (error) {
       console.error("Erreur serveur :", error);
       setMessage("Erreur serveur");
+                    setMessageType("error"); // ✅ rouge
+
     }
   };
 
@@ -118,6 +126,8 @@ export default function LoginPage() {
 
       if (response.ok) {
         setMessage("Vérification réussie ! Redirection...");
+                        setMessageType("success"); // ✅ vert
+
 
         // Supprimer l'ancien token avant d’enregistrer le nouveau
         localStorage.removeItem("token");
@@ -136,9 +146,13 @@ export default function LoginPage() {
         }, 2000);
       } else {
         setMessage("Code incorrect !");
+                      setMessageType("error"); // ✅ rouge
+
       }
     } catch (error) {
       setMessage("Erreur serveur");
+                    setMessageType("error"); // ✅ rouge
+
     }
   };
 
@@ -149,8 +163,16 @@ export default function LoginPage() {
         <div className="relative bg-[#121B2D] text-white p-16 rounded-xl shadow-lg w-[400px] md:w-[450px] lg:w-[600px]">
           <h2 className="text-center text-2xl font-semibold mb-11">Connexion</h2>
 
-          {message && <p className="text-center text-red-500">{message}</p>}
-
+{/* ✅ Message inline coloré */}
+        {message && (
+          <p
+            className={`text-center font-medium mb-4 ${
+              messageType === "success" ? "text-green-500" : "text-red-500"
+            }`}
+          >
+            {message}
+          </p>
+        )}
           {!showVerification ? (
             <form onSubmit={handleSubmit} className="space-y-7">
               <div className="relative" >

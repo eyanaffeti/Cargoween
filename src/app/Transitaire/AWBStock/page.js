@@ -26,22 +26,29 @@ const [newAWB, setNewAWB] = useState({
 const [toast, setToast] = useState({ show: false, message: "", type: "success" });
 const [showConfirmModal, setShowConfirmModal] = useState(false);
 const [awbToDelete, setAwbToDelete] = useState(null);
+    const [loading, setLoading] = useState(true); // ✅ état pour loader
 
 
-  useEffect(() => {
+   useEffect(() => {
     async function fetchData() {
-      const token = localStorage.getItem("token");
-      if (token) {
-        const res = await fetch("/api/auth/me", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const data = await res.json();
-        if (res.ok) setUser(data);
-      }
+      try {
+        const token = localStorage.getItem("token");
+        if (token) {
+          const res = await fetch("/api/auth/me", {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          const data = await res.json();
+          if (res.ok) setUser(data);
+        }
 
-      const resAWB = await fetch("/api/awb");
-      const dataAWB = await resAWB.json();
-      setAwbs(dataAWB);
+        const resAWB = await fetch("/api/awb");
+        const dataAWB = await resAWB.json();
+        setAwbs(dataAWB);
+      } catch (err) {
+        setToast({ show: true, message: "Erreur lors du chargement des AWB", type: "error" });
+      } finally {
+        setLoading(false); // ✅ Stoppe le loader une fois fini
+      }
     }
     fetchData();
   }, []);
@@ -167,7 +174,14 @@ const handleImportExcel = async (e) => {
   reader.readAsBinaryString(file);
 };
 
-
+  if (loading) {
+    return (
+      <div className="fixed inset-0 bg-white bg-opacity-90 flex flex-col items-center justify-center z-50">
+        <img src="/preloader.gif" alt="Chargement..." className="w-28 h-28 mb-4" />
+        <p className="text-[#3F6592] text-lg font-semibold">Chargement des numéros LTA...</p>
+      </div>
+    );
+  }
   return (
     <div className="flex">
       <Sidebar onToggle={setSidebarOpen} />

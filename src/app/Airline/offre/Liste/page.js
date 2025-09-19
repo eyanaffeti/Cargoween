@@ -15,6 +15,7 @@ export default function MesOffres() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const router = useRouter();
 const [toast, setToast] = useState({ show: false, message: "", type: "" });
+  const [loading, setLoading] = useState(true); // ✅ loader
 
   const [offres, setOffres] = useState([]);
   const [search, setSearch] = useState("");
@@ -30,7 +31,7 @@ const [toast, setToast] = useState({ show: false, message: "", type: "" });
     const fetchUserAndOffres = async () => {
       const token = localStorage.getItem("token");
       if (!token) return;
-
+try {
       const resUser = await fetch("/api/auth/me", {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -59,9 +60,24 @@ const [toast, setToast] = useState({ show: false, message: "", type: "" });
           setOffres([]);
         }
       }
+       } catch (err) {
+        console.error("❌ Erreur fetchUserAndOffres:", err);
+      } finally {
+        setLoading(false); // ✅ stop le loader
+      }
+      
     };
     fetchUserAndOffres();
   }, []);
+// ✅ Loader overlay
+  if (loading) {
+    return (
+      <div className="fixed inset-0 bg-white flex flex-col justify-center items-center z-50">
+        <img src="/preloader.gif" alt="Chargement..." className="w-32 h-32 mb-4" />
+        <p className="text-[#3F6592] font-semibold text-lg">Chargement de vos offres...</p>
+      </div>
+    );
+  }
 
   // Pagination
   const filteredOffres = offres.filter(

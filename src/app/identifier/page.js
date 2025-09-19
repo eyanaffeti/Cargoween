@@ -4,8 +4,11 @@ import Navbarlight from "@/components/Navbarlight";
 import Footer from "@/components/Footer";
 import Image from "next/image";
 import Link from "next/link";
+import { useLanguage } from "@/context/LanguageContext";
 
 export default function IdentificationPage() {
+  const { language } = useLanguage();
+
   return (
     <>
       {/* ✅ Navbar */}
@@ -19,8 +22,11 @@ export default function IdentificationPage() {
         }}
       >
         {/* ✅ Titre */}
-        <h1 className="text-[#121B2D]  text-5xl font-medium mb-16">
-          <br></br>Veuillez-Vous Identifier?
+        <h1 className="text-[#121B2D] text-5xl font-medium mb-16">
+          <br />
+          {language === "fr"
+            ? "Veuillez-Vous Identifier ?"
+            : "Please Identify Yourself"}
         </h1>
 
         {/* ✅ Cartes */}
@@ -30,29 +36,29 @@ export default function IdentificationPage() {
             <div className="w-[538px] h-[371px] bg-[#121B2D] rounded-3xl shadow-lg cursor-pointer hover:scale-105 transition-all duration-300">
               <Image
                 src="/transitaire-image.png"
-                alt="Transitaires"
+                alt={language === "fr" ? "Transitaires" : "Forwarders"}
                 width={366}
                 height={244}
                 className="mx-auto mt-10 rounded-lg"
               />
               <h2 className="text-white text-2xl font-medium text-center mt-6">
-                Transitaire
+                {language === "fr" ? "Transitaire" : "Forwarder"}
               </h2>
             </div>
           </Link>
 
           {/* ✅ Carte Compagnie Aérienne */}
           <Link href="/airline-signup">
-            <div className="w-[538px] h-[371px] bg-[#121B2D] rounded-3xl shadow-lg cursor-pointer hover:scale-105 transition-all duration-300">
+            <div className="w-[538px] h-[375px] bg-[#121B2D] rounded-3xl shadow-lg cursor-pointer hover:scale-105 transition-all duration-300">
               <Image
                 src="/airline-image.png"
-                alt="Compagnie Aérienne"
+                alt={language === "fr" ? "Compagnie Aérienne" : "Airline"}
                 width={269}
                 height={269}
-                className="mx-auto mt-6 rounded-lg"
+                className="mx-auto mt-9 rounded-lg"
               />
               <h2 className="text-white text-2xl font-medium text-center mt-6">
-                Compagnie Aérienne
+                {language === "fr" ? "Compagnie Aérienne" : "Airline"}
               </h2>
             </div>
           </Link>
@@ -61,8 +67,6 @@ export default function IdentificationPage() {
 
       {/* ✅ Footer */}
       <Footer />
-      
     </>
-
   );
 }

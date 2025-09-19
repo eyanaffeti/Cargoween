@@ -24,6 +24,8 @@ export default function AirlineSignUpPage() {
   });
 
   const [message, setMessage] = useState("");
+      const [messageType, setMessageType] = useState(""); // ✅ success | error
+
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -46,6 +48,8 @@ export default function AirlineSignUpPage() {
 
       if (response.ok) {
         setMessage(" Inscription réussie !");
+                        setMessageType("success"); // ✅ vert
+
         setTimeout(() => {
           window.location.href = "/login";
         }, 2000);
@@ -54,6 +58,8 @@ export default function AirlineSignUpPage() {
       }
     } catch (error) {
       setMessage(" Erreur serveur");
+                    setMessageType("error"); // ✅ rouge
+
     }
   };
 
@@ -65,10 +71,18 @@ export default function AirlineSignUpPage() {
 
 
               <div className="relative bg-[#121B2D] text-white p-12 rounded-xl shadow-lg  mt-8 lg:w-[716px]">
-              <h2 className="text-center text-3xl font-semibold mb-6">Compagnie Aérienne</h2>
+              <h2 className="text-center text-3xl font-semibold mb-6">Inscription Compagnie Aérienne</h2>
 
-          {message && <p className={`text-center ${message.includes("✅") ? "text-green-500" : "text-red-500"}`}>{message}</p>}
-
+{/* ✅ Message inline coloré */}
+        {message && (
+          <p
+            className={`text-center font-medium mb-4 ${
+              messageType === "success" ? "text-green-500" : "text-red-500"
+            }`}
+          >
+            {message}
+          </p>
+        )}
           <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-4">
             {[
               { name: "firstname", placeholder: "Prénom", icon: <FaUser /> },

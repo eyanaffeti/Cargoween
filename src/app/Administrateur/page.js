@@ -141,26 +141,58 @@ const formatInt = (n) =>
       }
     };
   };
+  const [loading, setLoading] = useState(true); // ✅ loader
 
-  useEffect(() => {
-    const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
-    if (token) {
-      fetch("/api/auth/me", { headers: { Authorization: `Bearer ${token}` } })
-        .then(r => r.json()).then(d => setUser(d)).catch(()=>{});
-    }
-    (async () => {
-      try {
-        const r = await fetch("/api/Dashboard/Admin");
-        const d = await r.json();
-        setStats(normalize(d));
-      } catch {
-        setMessage("Impossible de charger les statistiques.");
+ useEffect(() => {
+  const token =
+    typeof window !== "undefined" ? localStorage.getItem("token") : null;
+
+  const fetchData = async () => {
+    try {
+      setLoading(true); // ✅ démarre le loader
+
+      if (token) {
+        const rMe = await fetch("/api/auth/me", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const me = await rMe.json();
+        setUser(me);
       }
-    })();
-    const handleOutside = (e) => { if (!e.target.closest(".user-menu")) setUserMenuOpen(false); };
-    document.addEventListener("mousedown", handleOutside);
-    return () => document.removeEventListener("mousedown", handleOutside);
-  }, []);
+
+      const r = await fetch("/api/Dashboard/Admin");
+      const d = await r.json();
+      if (!r.ok) {
+        setMessage(d?.message || "Erreur de chargement");
+        return;
+      }
+      setStats(normalize(d));
+    } catch (err) {
+      setMessage("Impossible de charger les statistiques.");
+    } finally {
+      setLoading(false); // ✅ stop le loader quoi qu’il arrive
+    }
+  };
+
+  fetchData();
+
+  const handleOutside = (e) => {
+    if (!e.target.closest(".user-menu")) setUserMenuOpen(false);
+  };
+  document.addEventListener("mousedown", handleOutside);
+
+  return () => document.removeEventListener("mousedown", handleOutside);
+}, []);
+
+if (loading) {
+  return (
+    <div className="fixed inset-0 bg-white bg-opacity-90 flex flex-col items-center justify-center z-50">
+      <img src="/preloader.gif" alt="Chargement..." className="w-28 h-28 mb-4" />
+      <p className="text-[#3F6592] text-lg font-semibold">
+        Chargement du tableau de bord...
+      </p>
+    </div>
+  );
+}
 
   if (!stats) {
     return (
@@ -305,13 +337,13 @@ const invoices   = charts.invoices || [];
     
 
   {/* KPI */}
-<div className="grid grid-cols-1 md:grid-cols-6 gap-12 mb-10">
+          <div className="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-6 gap-6 md:gap-18 mb-11">
 
   {/* CA — carte premium, une seule ligne, thème bleu/violet/cyan */}
-  <div className="relative overflow-hidden rounded-2xl p-6 text-white shadow-lg
+  <div className="relative overflow-hidden rounded-2xl p-5 text-white shadow-lg
                   bg-gradient-to-br from-[#3F6592] via-[#5E7FB2] to-[#56CFE1]">
     <div className="text-sm opacity-90">Chiffre d’affaires</div>
-    <div className="mt-1 flex items-baseline gap-2">
+    <div className="mt-2 flex items-baseline gap-0">
       <span className="text-4xl md:text-3xl font-extrabold tracking-tight tabular-nums">
         {formatInt(totalCA)}
       </span>

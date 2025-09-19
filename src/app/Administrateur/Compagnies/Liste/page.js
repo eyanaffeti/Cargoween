@@ -21,6 +21,10 @@ export default function PageCompagnies() {
   const [airlines, setAirlines] = useState([]);
   const [selectedAirline, setSelectedAirline] = useState(null); // Compagnie aérienne sélectionnée
   const [selectedAirlineIds, setSelectedAirlineIds] = useState([]);
+  const [loading, setLoading] = useState(true); // ✅ état de chargement
+const [toast, setToast] = useState({ show: false, message: "", type: "success" });
+const [showConfirmModal, setShowConfirmModal] = useState(false);
+const [airlineToDelete, setAirlineToDelete] = useState(null);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -43,7 +47,9 @@ export default function PageCompagnies() {
           }
         } catch (err) {
           console.error("Erreur chargement des compagnies aériennes :", err);
-        }
+        }finally {
+        setLoading(false); // ✅ fin du chargement
+      }
       };
     
 
@@ -68,20 +74,30 @@ export default function PageCompagnies() {
   };
 
   // Fonction de suppression
-  const handleDelete = async (id) => {
-    if (window.confirm("Êtes-vous sûr de vouloir supprimer cette compagnie aérienne ?")) {
-      const response = await fetch(`/api/Airline/${id}`, {
-        method: "DELETE",
-      });
-      const data = await response.json();
-      if (response.ok) {
-        setAirlines((prevState) => prevState.filter((airline) => airline._id !== id));
-        alert(data.message);
-      } else {
-        alert(data.message || "Erreur lors de la suppression.");
-      }
+const handleDelete = async () => {
+  if (!airlineToDelete) return;
+
+  try {
+    const response = await fetch(`/api/Airline/${airlineToDelete._id}`, {
+      method: "DELETE",
+    });
+    const data = await response.json();
+
+    if (response.ok) {
+      setAirlines((prev) =>
+        prev.filter((a) => a._id !== airlineToDelete._id)
+      );
+      setToast({ show: true, message: "Compagnie supprimée avec succès ✅", type: "success" });
+    } else {
+      setToast({ show: true, message: data.message || "Erreur lors de la suppression ❌", type: "error" });
     }
-  };
+  } catch (err) {
+    setToast({ show: true, message: "Erreur serveur ❌", type: "error" });
+  } finally {
+    setShowConfirmModal(false);
+    setAirlineToDelete(null);
+  }
+};
 
     // Filtrage des compagnies aériennes
     const filteredAirlines = airlines.filter((a) => {
@@ -109,7 +125,11 @@ export default function PageCompagnies() {
       
       const totalPages = Math.ceil(filteredAirlines.length / itemsPerPage);
       const displayedAirlines = filteredAirlines.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
-    
+    const confirmDelete = (airline) => {
+  setAirlineToDelete(airline);
+  setShowConfirmModal(true);
+};
+
       // Afficher les détails dans une pop-up
       const showDetailsModal = (airline) => {
         setSelectedAirline(airline);
@@ -308,7 +328,15 @@ export default function PageCompagnies() {
         doc.save("airlines.pdf");
       };
 
-
+ // ✅ Loader plein écran 
+  if (loading) {
+    return (
+      <div className="fixed inset-0 bg-white bg-opacity-90 flex flex-col items-center justify-center z-50">
+        <img src="/preloader.gif" alt="Chargement..." className="w-28 h-28 mb-4" />
+        <p className="text-[#3F6592] text-lg font-semibold">Chargement des compagnies aériennes...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex">
@@ -437,7 +465,10 @@ export default function PageCompagnies() {
           <FaEdit className="text-yellow-500 cursor-pointer" onClick={() => showEditModal(a)} />
         </td>
         <td className="p-2 text-center">
-          <FaTrash className="text-red-500 cursor-pointer" onClick={() => handleDelete(a._id)} />
+<FaTrash
+  className="text-red-500 cursor-pointer"
+  onClick={() => confirmDelete(a)}
+/>
         </td>
       </tr>
     ))
@@ -447,6 +478,7 @@ export default function PageCompagnies() {
 
             </table>
           </div>
+
             {/* Pagination */}
           <div className="mt-5 flex justify-center items-center gap-3">
             <button disabled={currentPage===1} onClick={()=>setCurrentPage(currentPage-1)}><FaChevronLeft/></button>
@@ -455,7 +487,17 @@ export default function PageCompagnies() {
           </div>
         </div>
 
-      
+      {toast.show && (
+  <div
+    className={`fixed bottom-5 right-5 px-4 py-2 rounded-lg shadow-lg text-white ${
+      toast.type === "success" ? "bg-green-500" : "bg-red-500"
+    }`}
+  >
+    {toast.message}
+    <button className="ml-3" onClick={() => setToast({ ...toast, show: false })}>✖</button>
+  </div>
+)}
+
 
         {showDetails && selectedAirline && (
   <div className="fixed inset-0 bg-gray-600 bg-opacity-60 flex justify-center items-center z-50">
@@ -490,6 +532,33 @@ export default function PageCompagnies() {
     </div>
   </div>
 )}
+{showConfirmModal && airlineToDelete && (
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+    <div className="bg-white p-6 rounded-xl shadow-lg w-[90%] md:w-[400px]">
+      <h3 className="text-lg font-bold text-[#3F6592] mb-4">
+        ⚠️ Confirmation
+      </h3>
+      <p className="mb-6">
+        Voulez-vous vraiment supprimer la compagnie <b>{airlineToDelete.company}</b> ?
+      </p>
+      <div className="flex justify-end gap-3">
+        <button
+          className="px-4 py-2 bg-gray-300 rounded-full"
+          onClick={() => setShowConfirmModal(false)}
+        >
+          Annuler
+        </button>
+        <button
+          className="px-4 py-2 bg-red-500 text-white rounded-full"
+          onClick={handleDelete}
+        >
+          Supprimer
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
 
 
 {showEdit && selectedAirline && (

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import Sidebar from "@/components/Sidebar-airline";
+import Sidebar from "@/components/sidebare-admin";
 import { FaUser, FaChevronDown,
   FaEdit,
   FaSignOutAlt, } from "react-icons/fa";
@@ -10,6 +10,7 @@ import RouteDetails from '@/components/RouteDetails';
 import CargoDetails from '@/components/CargoDetails';
 import Toast from "@/components/Toast";
 import { useRouter } from "next/navigation";
+
 
 export default function ReservationDetails() {
   const { id } = useParams();
@@ -170,7 +171,7 @@ if (response.ok && data.paymentUrl) {
                    {dropdownOpen && (
                      <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-md z-10">
                        <button
-                         onClick={() => router.push("/Airline/Profil")}
+                         onClick={() => router.push("/Administrateur/Profil")}
                          className="w-full px-4 py-2 text-left hover:bg-gray-100 flex items-center"
                        >
                          <FaEdit className="mr-2" /> Modifier profil
@@ -178,7 +179,7 @@ if (response.ok && data.paymentUrl) {
                        <button
                          onClick={() => {
                            localStorage.removeItem("token");
-                           router.push("/login");
+                           router.push("/");
                          }}
                          className="w-full px-4 py-2 text-left hover:bg-gray-100 flex items-center text-red-500"
                        >

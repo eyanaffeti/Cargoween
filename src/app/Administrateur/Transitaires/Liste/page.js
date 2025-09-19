@@ -21,7 +21,15 @@ export default function PageTransitaires() {
   const [formData, setFormData] = useState({});
   const [selectedTransitaireIds, setSelectedTransitaireIds] = useState([]);
   const [userMenuOpen, setUserMenuOpen] = useState(false); 
-
+  const [loading, setLoading] = useState(true); // ✅ Loader
+const [toast, setToast] = useState({ show: false, message: "", type: "success" });
+const [showConfirmModal, setShowConfirmModal] = useState(false);
+const [transitaireToDelete, setTransitaireToDelete] = useState(null);
+// Quand on clique sur la poubelle -> ouvre la modale
+const confirmDelete = (transitaire) => {
+  setTransitaireToDelete(transitaire);
+  setShowConfirmModal(true);
+};
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -44,6 +52,8 @@ export default function PageTransitaires() {
         }
       } catch (err) {
         console.error("Erreur chargement transitaires :", err);
+      } finally {
+        setLoading(false); // ✅ Arrêter le loader une fois la requête terminée
       }
     };
     
@@ -69,20 +79,30 @@ export default function PageTransitaires() {
   };
 
   // Fonction de suppression
-  const handleDelete = async (id) => {
-    if (window.confirm("Êtes-vous sûr de vouloir supprimer ce transitaire ?")) {
-      const response = await fetch(`/api/transitaires/${id}`, {
-        method: "DELETE",
-      });
-      const data = await response.json();
-      if (response.ok) {
-        setTransitaires((prevState) => prevState.filter((transitaire) => transitaire._id !== id));
-        alert(data.message);
-      } else {
-        alert(data.message || "Erreur lors de la suppression.");
-      }
+ const handleDelete = async () => {
+  if (!transitaireToDelete) return;
+
+  try {
+    const response = await fetch(`/api/transitaires/${transitaireToDelete._id}`, {
+      method: "DELETE",
+    });
+    const data = await response.json();
+
+    if (response.ok) {
+      setTransitaires((prev) =>
+        prev.filter((t) => t._id !== transitaireToDelete._id)
+      );
+      setToast({ show: true, message: "Transitaire supprimé avec succès ✅", type: "success" });
+    } else {
+      setToast({ show: true, message: data.message || "Erreur lors de la suppression ❌", type: "error" });
     }
-  };
+  } catch (err) {
+    setToast({ show: true, message: "Erreur serveur ❌", type: "error" });
+  } finally {
+    setShowConfirmModal(false);
+    setTransitaireToDelete(null);
+  }
+};
 
   // Filtrage des transitaires en fonction de la recherche
   const filteredTransitaires = transitaires.filter((t) => {
@@ -308,7 +328,15 @@ const handleExportPDF = () => {
   doc.save("transitaires.pdf");
 };
 
-
+ // ✅ Affichage du loader
+  if (loading) {
+    return (
+      <div className="fixed inset-0 bg-white bg-opacity-90 flex flex-col items-center justify-center z-50">
+        <img src="/preloader.gif" alt="Chargement..." className="w-28 h-28 mb-4" />
+        <p className="text-[#3F6592] text-lg font-semibold">Chargement des transitaires...</p>
+      </div>
+    );
+  }
 
 
 
@@ -458,7 +486,10 @@ const handleExportPDF = () => {
           <FaEdit className="text-yellow-500 cursor-pointer" onClick={() => showEditModal(t)} />
         </td>
         <td className="p-2 text-center">
-          <FaTrash className="text-red-500 cursor-pointer" onClick={() => handleDelete(t._id)} />
+<FaTrash
+  className="text-red-500 cursor-pointer"
+  onClick={() => confirmDelete(t)}
+/>
         </td>
       </tr>
     ))
@@ -468,6 +499,22 @@ const handleExportPDF = () => {
 
             </table>
           </div>
+          {toast.show && (
+  <div
+    className={`fixed bottom-5 right-5 px-4 py-2 rounded-lg shadow-lg text-white ${
+      toast.type === "success" ? "bg-green-500" : "bg-red-500"
+    }`}
+  >
+    {toast.message}
+    <button
+      className="ml-3 font-bold"
+      onClick={() => setToast({ ...toast, show: false })}
+    >
+      ✖
+    </button>
+  </div>
+)}
+
             {/* Pagination */}
           <div className="mt-5 flex justify-center items-center gap-3">
             <button disabled={currentPage===1} onClick={()=>setCurrentPage(currentPage-1)}><FaChevronLeft/></button>
@@ -476,7 +523,31 @@ const handleExportPDF = () => {
           </div>
         </div>
 
-      
+      {showConfirmModal && transitaireToDelete && (
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+    <div className="bg-white p-6 rounded-xl shadow-lg w-[90%] md:w-[400px]">
+      <h3 className="text-lg font-bold text-[#3F6592] mb-4">⚠️ Confirmation</h3>
+      <p className="mb-6">
+        Voulez-vous vraiment supprimer le transitaire <b>{transitaireToDelete.firstname} {transitaireToDelete.lastname}</b> ?
+      </p>
+      <div className="flex justify-end gap-3">
+        <button
+          className="px-4 py-2 bg-gray-300 rounded-full"
+          onClick={() => setShowConfirmModal(false)}
+        >
+          Annuler
+        </button>
+        <button
+          className="px-4 py-2 bg-red-500 text-white rounded-full"
+          onClick={handleDelete}
+        >
+          Supprimer
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
 
         {showDetails && selectedTransitaire && (
   <div className="fixed inset-0 bg-gray-600 bg-opacity-60 flex justify-center items-center z-50">

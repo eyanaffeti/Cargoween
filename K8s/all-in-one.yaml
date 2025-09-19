@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cargo-app
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: cargo-app
+  template:
+    metadata:
+      labels:
+        app: cargo-app
+    spec:
+      containers:
+        - name: cargo-app
+          image: us-central1-docker.pkg.dev/central-muse-471805-p6/cargo-repo/cargoween:latest
+          ports:
+            - containerPort: 3000
+          envFrom:
+            - secretRef:
+                name: cargoween-secrets
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cargo-service
+spec:
+  type: LoadBalancer
+  selector:
+    app: cargo-app
+  ports:
+    - port: 80
+      targetPort: 3000
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: cargo-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: cargo-app
+  minReplicas: 2
+  maxReplicas: 5
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 50

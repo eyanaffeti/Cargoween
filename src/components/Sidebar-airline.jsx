@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import {
-  FaUser, FaSearch, FaCalendar, FaBox, FaCog, FaSignOutAlt,
+  FaUser, FaEdit, FaCalendar, FaBox, FaCog, FaSignOutAlt,
   FaBars, FaTimes, FaPlus, FaPlane, FaUsers, FaChevronRight ,FaTachometerAlt
 } from "react-icons/fa";
 import Link from "next/link"; 
@@ -14,6 +14,7 @@ export default function Sidebar({ onToggle }) {
   const [isOpen, setIsOpen] = useState(true);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const router = useRouter(); // Initialisation du router pour la redirection
+  const [settingsMenuOpen, setSettingsMenuOpen] = useState(false);
 
 
   const handleToggle = () => {
@@ -51,7 +52,7 @@ export default function Sidebar({ onToggle }) {
 
         {/* Navigation */}
         <nav className="mt-4 flex flex-col space-y-2 px-4">
-                              <SidebarLink icon={<FaTachometerAlt />} text="Tableau de bord" isOpen={isOpen} />
+                              <SidebarLink icon={<FaTachometerAlt />} text="Tableau de bord" href="/Airline" isOpen={isOpen} />
           
           <div onClick={() => setUserMenuOpen(!userMenuOpen)}>
             <SidebarLink icon={<FaPlane />} text="Offres" isOpen={isOpen}  hasSubMenu
@@ -67,8 +68,24 @@ export default function Sidebar({ onToggle }) {
           )}
 
           <SidebarLink icon={<FaCalendar />} text="Réservation" href="/Airline/reservation" isOpen={isOpen} />
-          <SidebarLink icon={<FaCog />} text="Paramètres" isOpen={isOpen} />
-        </nav>
+{/* Menu Paramètres */}
+          <div onClick={() => setSettingsMenuOpen(!settingsMenuOpen)}>
+            <SidebarLink
+              icon={<FaCog />}
+              text="Paramètres"
+              isOpen={isOpen}
+              hasSubMenu
+              isSubMenuOpen={settingsMenuOpen}
+            />
+          </div>
+          {isOpen && settingsMenuOpen && (
+            <div className="ml-8 flex flex-col space-y-2 text-sm">
+              <SidebarSubLink icon={<FaEdit />} text="Modifier profil" href="/Airline/Profil" />
+              <div onClick={handleLogout}>
+                <SidebarSubLink icon={<FaSignOutAlt />} text="Se déconnecter" />
+              </div>
+            </div>
+          )}        </nav>
       </div>
 
       {/* Déconnexion en bas */}
