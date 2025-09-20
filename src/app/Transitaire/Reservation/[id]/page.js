@@ -25,7 +25,10 @@ useEffect(() => {
   const fetchAvailableAwbs = async () => {
     setLoadingAwbs(true); // commence le chargement
 
-    const res = await fetch("/api/awb/available");
+const token = localStorage.getItem("token");
+const res = await fetch("/api/awb/available", {
+  headers: { Authorization: `Bearer ${token}` },
+});
     const data = await res.json();
 
     if (res.ok) {

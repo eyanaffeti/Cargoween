@@ -24,15 +24,26 @@ export async function POST(request) {
 // ============================
 //  ➡️ GET /api/offres
 // ============================
+// GET /api/offres
 export async function GET(req) {
   await connectToDatabase();
   try {
     const { searchParams } = new URL(req.url);
     const airlineId = searchParams.get("airline");
+    const from = searchParams.get("from");
+    const to = searchParams.get("to");
+    const date = searchParams.get("date");
 
-    let query = {};
-    if (airlineId) {
-      query.airline = airlineId; // ✅ filtre par compagnie connectée
+    const query = {};
+    if (airlineId) query.airline = airlineId;
+    if (from) query.from = from;
+    if (to) query.to = to;
+    if (date) {
+      const dayStart = new Date(date);
+      dayStart.setHours(0, 0, 0, 0);
+      const dayEnd = new Date(date);
+      dayEnd.setHours(23, 59, 59, 999);
+      query.departureDate = { $gte: dayStart, $lte: dayEnd };
     }
 
     const offres = await Offre.find(query).populate("airline", "company firstname lastname");
@@ -42,3 +53,4 @@ export async function GET(req) {
     return new Response(JSON.stringify({ message: "Erreur serveur" }), { status: 500 });
   }
 }
+

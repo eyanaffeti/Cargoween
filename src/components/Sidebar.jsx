@@ -1,38 +1,46 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   FaUser, FaSearch, FaCalendar, FaBox, FaCog, FaSignOutAlt,
-  FaBars, FaTimes, FaPlus, FaEdit, FaUsers, FaChevronRight ,FaTachometerAlt
+  FaBars, FaTimes, FaPlus, FaEdit, FaUsers, FaChevronRight, FaTachometerAlt
 } from "react-icons/fa";
-import Link from "next/link"; 
-import { useRouter } from "next/navigation"; // Importation du router de Next.js
-
-
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export default function Sidebar({ onToggle }) {
   const [isOpen, setIsOpen] = useState(true);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
-  const router = useRouter(); // Initialisation du router pour la redirection
   const [settingsMenuOpen, setSettingsMenuOpen] = useState(false);
+  const [user, setUser] = useState(null);
+  const router = useRouter();
 
+  useEffect(() => {
+    async function fetchUser() {
+      const token = localStorage.getItem("token");
+      if (!token) return;
+      const res = await fetch("/api/auth/me", { headers: { Authorization: `Bearer ${token}` } });
+      const data = await res.json();
+      if (res.ok) setUser(data);
+    }
+    fetchUser();
+  }, []);
 
   const handleToggle = () => {
     setIsOpen(!isOpen);
     onToggle && onToggle(!isOpen);
   };
 
-   // Fonction de déconnexion
-   const handleLogout = () => {
-    // Supprimer le token de l'utilisateur dans localStorage
+  // Déconnexion
+  const handleLogout = () => {
     localStorage.removeItem("token");
-
-    // Optionnel : Supprimer le token du cookie également
     document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-
-    // Redirection vers la page de connexion après la déconnexion
-    router.push("/login"); // Remplacez '/login' par le chemin de votre page de connexion si nécessaire
+    router.push("/login");
   };
+
+  // Vérifie si user est secondaire
+  const isSecondary = (user?.role || "").toLowerCase().includes("secondaire");
+
   return (
     <div className={`bg-[#3F6592] text-white h-screen fixed top-0 left-0 transition-all duration-300 ${isOpen ? 'w-64' : 'w-20'} z-50 flex flex-col justify-between`}>
       
@@ -52,15 +60,24 @@ export default function Sidebar({ onToggle }) {
 
         {/* Navigation */}
         <nav className="mt-4 flex flex-col space-y-2 px-4">
-                              <SidebarLink icon={<FaTachometerAlt />} text="Tableau de bord" href="/Transitaire" isOpen={isOpen} />
-          
-          <div onClick={() => setUserMenuOpen(!userMenuOpen)}>
-            <SidebarLink icon={<FaUser />} text="Utilisateur" isOpen={isOpen}  hasSubMenu
-      isSubMenuOpen={userMenuOpen} />
+          <SidebarLink icon={<FaTachometerAlt />} text="Tableau de bord" href="/Transitaire" isOpen={isOpen} />
+
+          {/* Section Utilisateur */}
+          <div
+            onClick={() => !isSecondary && setUserMenuOpen(!userMenuOpen)} // 👈 bloque si secondaire
+            className={`${isSecondary ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
+          >
+            <SidebarLink
+              icon={<FaUser />}
+              text="Utilisateur"
+              isOpen={isOpen}
+              hasSubMenu
+              isSubMenuOpen={userMenuOpen}
+            />
           </div>
 
-          {/* Sous-menu utilisateur */}
-          {isOpen && userMenuOpen && (
+          {/* Sous-menu uniquement si pas secondaire */}
+          {isOpen && userMenuOpen && !isSecondary && (
             <div className="ml-8 flex flex-col space-y-2 text-sm">
               <SidebarSubLink icon={<FaPlus />} text="Ajouter un sous-compte" href="/Transitaire/Comptes/Ajout" />
               <SidebarSubLink icon={<FaUsers />} text="Liste des sous-comptes" href="/Transitaire/Comptes/Liste" />
@@ -70,7 +87,8 @@ export default function Sidebar({ onToggle }) {
           <SidebarLink icon={<FaSearch />} text="Recherche" href="/Transitaire/Reservation" isOpen={isOpen} />
           <SidebarLink icon={<FaCalendar />} text="Réservation" href="/Transitaire/Reservation/Liste" isOpen={isOpen} />
           <SidebarLink icon={<FaBox />} text="Stock LTA" href="/Transitaire/AWBStock" isOpen={isOpen} />
-{/* Menu Paramètres */}
+
+          {/* Menu Paramètres */}
           <div onClick={() => setSettingsMenuOpen(!settingsMenuOpen)}>
             <SidebarLink
               icon={<FaCog />}
@@ -87,32 +105,31 @@ export default function Sidebar({ onToggle }) {
                 <SidebarSubLink icon={<FaSignOutAlt />} text="Se déconnecter" />
               </div>
             </div>
-          )}        </nav>
+          )}
+        </nav>
       </div>
 
       {/* Déconnexion en bas */}
       <div className="mb-6 px-4">
-        <SidebarLink icon={<FaSignOutAlt />} text="Se Déconnecter" isOpen={isOpen} onClick={handleLogout} /> {/* Appel de la fonction handleLogout */}
+        <SidebarLink icon={<FaSignOutAlt />} text="Se Déconnecter" isOpen={isOpen} onClick={handleLogout} />
       </div>
     </div>
   );
 }
 
-function SidebarLink({ icon, text, isOpen, onClick, href, hasSubMenu = false, isSubMenuOpen = false  }) {
+function SidebarLink({ icon, text, isOpen, onClick, href, hasSubMenu = false, isSubMenuOpen = false }) {
   const content = (
     <div
-      className="flex items-center space-x-3 hover:bg-white/10 p-3 rounded-lg cursor-pointer transition-all"
+      className="flex items-center space-x-3 hover:bg-white/10 p-3 rounded-lg transition-all"
       onClick={onClick}
     >
-           <div className="flex items-center space-x-3">
+      <div className="flex items-center space-x-3">
         {icon}
         {isOpen && <span>{text}</span>}
       </div>
       {isOpen && hasSubMenu && (
-        <span className={`transform transition-transform duration-300 ${isSubMenuOpen ? "rotate-90" : ""}`}>
-         <FaChevronRight
-              className={`transform transition-transform duration-300 ${isSubMenuOpen ? "rotate-90" : ""}`}
-            />
+        <span>
+          <FaChevronRight className={`transform transition-transform duration-300 ${isSubMenuOpen ? "rotate-90" : ""}`} />
         </span>
       )}
     </div>
@@ -131,4 +148,3 @@ function SidebarSubLink({ icon, text, href }) {
 
   return href ? <Link href={href}>{content}</Link> : content;
 }
-

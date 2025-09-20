@@ -5,7 +5,9 @@ const awbStockSchema = new mongoose.Schema({
   used: { type: Boolean, default: false },
   addedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
   awbType: { type: String, enum: ["Paper AWB", "EAP", "EAW"] },
-  comment: { type: String }
+  comment: { type: String },
+    addedBy: { type: mongoose.Schema.Types.ObjectId, ref: "Transitaire", required: true }, // ✅
+
 }, { timestamps: true });
 
 export default mongoose.models.AWBStock || mongoose.model("AWBStock", awbStockSchema);

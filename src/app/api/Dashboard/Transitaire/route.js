@@ -45,7 +45,7 @@ export async function GET(req) {
   }
 
   try {
-    const isMainForwarder = role.includes("transitaire") && !role.includes("second");
+    const isMainForwarder = role.includes("transitaire") || role.includes("second");
 
     // ---- Sous-transitaires (⚠️ ajoutePar est une String dans votre modèle)
     const subs = isMainForwarder
@@ -162,6 +162,26 @@ export async function GET(req) {
     const reservationsByStatus = ensureBuckets(byStatusAgg, STATUS_KEYS);
     const reservationsByMonth  = monthSeriesFromAgg(byMonthAgg);
     const marchandiseByType    = ensureBuckets(marchTypeAgg, MARCH_TYPES);
+const now = new Date();
+const allReservations = await Reservation.find(reservationMatch).lean();
+
+const livraisonDist = [
+  { name: "En attente", value: 0, fill: "#7A4DD8" },
+  { name: "En cours",   value: 0, fill: "#3F6592" },
+  { name: "Livrées",    value: 0, fill: "#56CFE1" }
+];
+
+allReservations.forEach(r => {
+  if (r.etat === "Annulée") return;
+
+  if (new Date(r.arrivalDate) <= now && r.etat === "Acceptée") {
+    livraisonDist[2].value++; // Livrée
+  } else if (new Date(r.departureDate) <= now && new Date(r.arrivalDate) > now) {
+    livraisonDist[1].value++; // En cours
+  } else {
+    livraisonDist[0].value++; // En attente
+  }
+});
 
   // ===== AWB (statut & type) =====
 let awbByStatus = [];
@@ -258,34 +278,36 @@ if (isMainForwarder) {
       { stage: "Confirmée", value: acceptedCount },
     ];
 
-    return NextResponse.json({
-      totals: {
-        reservations: totalReservations,
-        marchandises: marchandiseByType.reduce((s,d)=>s+(d.count||0),0),
-        ca: totalCA,
-        totalWeight,
-        awbDisponibles: isMainForwarder ? (awbByStatus.find(x => x._id === "Disponibles")?.count || 0) : 0,
-        awbUtilises:    isMainForwarder ? (awbByStatus.find(x => x._id === "Utilisés")?.count    || 0) : 0,
-        subaccounts:    isMainForwarder ? subs.length : 0,
-      },
-      charts: {
-        reservationsByEtat,
-        reservationsByStatus,
-        reservationsByMonth,
-        topAirlines: topAirlinesAgg,   // [{ name, count }]
-        marchandiseByType,
-        awbByStatus,
-        awbByType,
-        subAccountsPerf,
-        revenueByAirline,
-        invoices,
-        funnel,
-        subAccounts: subs.map(s => ({
-          _id: s._id,
-          label: s.company || `${s.firstname} ${s.lastname}` || s.email
-        })),
-      }
-    }, { status: 200 });
+   return NextResponse.json({
+  totals: {
+    reservations: totalReservations,
+    marchandises: marchandiseByType.reduce((s,d)=>s+(d.count||0),0),
+    ca: totalCA,
+    totalWeight,
+    awbDisponibles: isMainForwarder ? (awbByStatus.find(x => x._id === "Disponibles")?.count || 0) : 0,
+    awbUtilises:    isMainForwarder ? (awbByStatus.find(x => x._id === "Utilisés")?.count    || 0) : 0,
+    subaccounts:    isMainForwarder ? subs.length : 0,
+  },
+  charts: {
+    reservationsByEtat,
+    reservationsByStatus,
+    reservationsByMonth,
+    topAirlines: topAirlinesAgg,
+    marchandiseByType,
+    awbByStatus,
+    awbByType,
+    subAccountsPerf,
+    revenueByAirline,
+    invoices,
+    funnel,
+    subAccounts: subs.map(s => ({
+      _id: s._id,
+      label: s.company || `${s.firstname} ${s.lastname}` || s.email
+    })),
+    livraisonDist   // <-- 👈 ajoute bien ici
+  }
+}, { status: 200 });
+
 
   } catch (err) {
     console.error("/api/Dashboard/Transitaire ->", err);

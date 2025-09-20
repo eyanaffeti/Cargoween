@@ -4,7 +4,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Sidebar from "@/components/Sidebar-airline";
-import { FaUser } from "react-icons/fa";
+import {
+  FaEnvelope, FaUser, FaPhone, FaMapMarkerAlt,
+  FaBriefcase, FaBuilding, FaIdBadge, FaLock, FaGlobe,
+  FaCity, FaHome, FaBarcode, FaPlane,FaChevronDown,FaEdit,FaSignOutAlt 
+} from "react-icons/fa";
 import dynamic from "next/dynamic";
 
 /* ==== Recharts dynamiques ==== */
@@ -69,6 +73,7 @@ export default function AirlineDashboard() {
   const [stats, setStats] = useState(null);
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(true); // ✅ loader
+  const [dropdownOpen, setDropdownOpen] = useState(false);
 
 useEffect(() => {
     (async () => {
@@ -134,15 +139,28 @@ useEffect(() => {
       <main className={`transition-all duration-300 flex-1 min-h-screen p-8 ${sidebarOpen ? 'ml-64' : 'ml-20'}`} style={{ backgroundColor: THEME.blue }}>
         <div className="bg-white rounded-3xl p-10 md:p-16 shadow-lg relative">
 
-          {/* user */}
-          <div className="absolute top-8 right-8">
-            <div className="relative">
-              <button className="flex items-center bg-[#3F6592] text-white py-3 px-6 md:px-8 rounded-full shadow-md">
-                <FaUser className="mr-2" />
-                <span>{user ? `${user.firstname} ${user.lastname}` : "Utilisateur"}</span>
-              </button>
-            </div>
-          </div>
+          {/* Menu utilisateur */}
+                    <div className="absolute top-5 right-7">
+                              <button onClick={() => setDropdownOpen(!dropdownOpen)} className="flex items-center bg-[#3F6592] text-white py-2 px-6 rounded-full shadow-md">
+                                <FaUser className="mr-2" />
+                                <span>{user ? `${user.firstname} ${user.lastname}` : "Utilisateur"}</span>
+                                <FaChevronDown className="ml-2" />
+                              </button>
+                              {dropdownOpen && (
+                                <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-md z-10">
+                                  <button onClick={() => router.push("/Airline/Profil")} className="w-full px-4 py-2 text-left hover:bg-gray-100 flex items-center">
+                                    <FaEdit className="mr-2" /> Modifier profil
+                                  </button>
+                                  <button onClick={() => {
+                                    localStorage.removeItem("token");
+                                    router.push("/login");
+                                  }} className="w-full px-4 py-2 text-left hover:bg-gray-100 flex items-center text-red-500">
+                                    <FaSignOutAlt className="mr-2" /> Se déconnecter
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+         
 <br></br> <br></br>
           <h2 className="text-3xl md:text-4xl font-semibold text-[#3F6592] mb-16 text-center">
             Tableau de bord Compagnie — <span className="text-[#5E7FB2]">{user?.company}</span> <span className="text-sm align-super">({meta?.airlineCode})</span>

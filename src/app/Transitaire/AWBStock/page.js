@@ -41,7 +41,10 @@ const [awbToDelete, setAwbToDelete] = useState(null);
           if (res.ok) setUser(data);
         }
 
-        const resAWB = await fetch("/api/awb");
+// Récupérer les AWB
+const resAWB = await fetch("/api/awb", {
+  headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+});
         const dataAWB = await resAWB.json();
         setAwbs(dataAWB);
       } catch (err) {
@@ -144,7 +147,8 @@ const handleImportExcel = async (e) => {
 
         const response = await fetch("/api/awb", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: { "Content-Type": "application/json",    Authorization: `Bearer ${localStorage.getItem("token")}`, // ✅
+ },
           body: JSON.stringify({
             number: row.number,
             awbType: row.awbType || "Paper LTA",
@@ -363,11 +367,15 @@ onClick={() => {
             <button
               className="px-4 py-2 bg-[#0EC953] text-white rounded-full"
               onClick={async () => {
-                const res = await fetch("/api/awb", {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({ ...newAWB, used: false }),
-                });
+               const res = await fetch("/api/awb", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${localStorage.getItem("token")}`, // ✅
+  },
+  body: JSON.stringify({ ...newAWB, used: false }),
+});
+
                 const data = await res.json();
                 if (res.ok) {
                   setAwbs((prev) => [...prev, data]);

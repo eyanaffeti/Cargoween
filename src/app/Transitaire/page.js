@@ -322,7 +322,7 @@ const paretoAirlines = (() => {
             </div>
 
             {/* KPI visibles uniquement pour transitaire principal */}
-            {isMainForwarder && (
+            
               <>
                 <div className="text-white p-6 rounded-2xl text-center shadow-md bg-gradient-to-br from-[#5E7FB2] to-[#7A4DD8]">
                   <h3 className="opacity-90">AWB disponibles</h3>
@@ -333,11 +333,11 @@ const paretoAirlines = (() => {
                   <p className="text-3xl font-bold">{totals.awbUtilises}</p>
                 </div>
               </>
-            )}
+            
 
             {!isMainForwarder && (
               <div className="md:col-span-2 xl:col-span-3 text-[#3F6592] bg-[#f0f5fb] p-6 rounded-2xl border border-[#e3eaf5]">
-                <p className="text-sm">Note : En tant que <b>transitaire secondaire</b>, vous ne voyez que vos réservations et vos marchandises. Les statistiques desnuméros LTA et sous‑comptes sont masquées.</p>
+                <p className="text-sm">Note : En tant que <b>transitaire secondaire</b>, vous ne pouvez pas ajouter des sous-comptes .</p>
               </div>
             )}
           </div>
@@ -353,7 +353,7 @@ const paretoAirlines = (() => {
                 const pieData = base.map((d, i) => ({ name: String(d._id), value: d.count || 0, fill: COLOR_BY_LABEL[String(d._id)] || COLORS[i % COLORS.length] }));
                 const hasData = pieData.some(x => x.value > 0);
                 return hasData ? (
-                  <ResponsiveContainer width="100%" height={320}>
+                  <ResponsiveContainer width="100%" height={350}>
                     <PieChart>
                       <Pie data={pieData} dataKey="value" nameKey="name" innerRadius={60} outerRadius={120} stroke="#fff" strokeWidth={2} label />
                       <Tooltip />
@@ -378,7 +378,7 @@ const paretoAirlines = (() => {
     const maxY = Math.max(5, ...data.map(d => d.count || 0));
 
     return (
-      <ResponsiveContainer width="100%" height={320}>
+      <ResponsiveContainer width="100%" height={420}>
         <BarChart data={data}>
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey="status" />
@@ -421,7 +421,7 @@ const paretoAirlines = (() => {
               ) : <NoData/>}
             </div>
 {/* 8) AWB par type — Pie (plein) */}
-{isMainForwarder && (
+
               <>
 <div className="bg-[#f8f9fc] p-6 rounded-2xl shadow-md">
   <h3 className="text-lg font-semibold text-[#3F6592] mb-4">
@@ -435,7 +435,7 @@ const paretoAirlines = (() => {
 
     return (
       <ResponsiveContainer width="100%" height={360}>
-        <PieChart margin={{ top: 0, right: 0, bottom: 2, left: 0 }}>
+        <PieChart margin={{ top: 30, right: 0, bottom: 2, left: 0 }}>
           <Pie
             data={data}
             dataKey="count"
@@ -469,12 +469,12 @@ const paretoAirlines = (() => {
       </ResponsiveContainer>
     );
   })() : <NoData/>}
-</div></>)}
+</div></>
    
            
 
             {/* 7) AWB — RadialBar (visibles seulement pour transitaire principal) */}
-            {isMainForwarder && (
+            
               <>
                 <div className="bg-[#f8f9fc] p-6 rounded-2xl shadow-md">
                   <h3 className="text-lg font-semibold text-[#3F6592] mb-4">AWB disponibles vs utilisés</h3>
@@ -550,11 +550,11 @@ const paretoAirlines = (() => {
     Livraisons (opérationnel)
   </h3>
 
-  {opsDist && opsDist.some(d => d.value > 0) ? (
-    <ResponsiveContainer width="100%" height={340}>
+  {charts.livraisonDist && charts.livraisonDist.some(d => d.value > 0) ? (
+    <ResponsiveContainer width="100%" height={360}>
       <PieChart margin={{ bottom: 24 }}>
         <Pie
-          data={opsDist}
+          data={charts.livraisonDist}
           dataKey="value"
           nameKey="name"
           cx="50%"
@@ -566,7 +566,7 @@ const paretoAirlines = (() => {
             `${name} • ${value} (${Math.round(percent * 100)}%)`
           }
         >
-          {opsDist.map(d => <Cell key={d.name} fill={d.fill} />)}
+          {charts.livraisonDist.map(d => <Cell key={d.name} fill={d.fill} />)}
         </Pie>
         <Tooltip />
         <Legend verticalAlign="bottom" align="center" iconType="square" />
@@ -578,8 +578,9 @@ const paretoAirlines = (() => {
 
 
 
+
               </>
-            )}
+            
             {/* 6) Top compagnies — Bar chart (classement) */}
 <div className="bg-[#f8f9fc] p-6 rounded-2xl shadow-md">
   <h3 className="text-lg font-semibold text-[#3F6592] mb-4">
