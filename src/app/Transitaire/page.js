@@ -551,7 +551,7 @@ const paretoAirlines = (() => {
   </h3>
 
   {charts.livraisonDist && charts.livraisonDist.some(d => d.value > 0) ? (
-    <ResponsiveContainer width="100%" height={360}>
+    <ResponsiveContainer width="100%" height={390}>
       <PieChart margin={{ bottom: 24 }}>
         <Pie
           data={charts.livraisonDist}
